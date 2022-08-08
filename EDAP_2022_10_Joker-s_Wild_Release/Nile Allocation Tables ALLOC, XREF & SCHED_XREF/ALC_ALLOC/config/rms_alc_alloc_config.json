@@ -1,0 +1,88 @@
+{
+	"parallelism": 1,
+	"onJobFailure": "Fail",
+	"onEmptyDF": "Fail",
+	"ignoreInvalidRows": true,
+	"cleanColumnNames": true,
+	"jobs": [
+		{
+			"name": "GenericPassThroughBatchJob.RMS_ALC_ALLOC_L1",
+			"description": "Extract RMS_OWNER.ALC_ALLOC Data from RMS",
+			"ignoreInvalidRows": true,
+			"cleanColumnNames": true,
+			"jdbcInputs": [
+				{
+					"dataFrameName": "RMS_ALC_ALLOC_L1_DF",
+					"driver": "oracle.jdbc.driver.OracleDriver",
+					"flavor": "oracle",
+					"fetchSize": 30000,
+					"numPartitions": 50,
+					"url": "jdbc:oracle:thin:@RMSDBPRDRK2P.wsgc.com:1521/rmsrep",
+					"keyVaultAuth": {
+						"keyVaultParams": {
+							"clientId": "${spark.wsgc.clientId}",
+							"clientKey": "${spark.wsgc.clientkey}",
+							"vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+							"usernameKey": "${spark.wsgc.usernamekey}",
+							"passwordKey": "${spark.wsgc.passwordkey}"
+						}
+					},
+					"incrementalParams": {
+						"checkpointTablePath": "dbfs:/mnt/data/governed/l1/audit/log/checkpoint_log/",
+						"extractId": "RMS_ALC_ALLOC",
+						"incrementalSql": "(select /*+ PARALLEL(16) */ STATUS,ALLOC_ID,ALLOC_DESC,CALC_STATUS,RULE_TEMPLATE_NAME,LOCATION_TEMPLATE_NAME,ENFORCE_WH_STORE_REL_IND,CREATED_DATE,CREATED_BY_USER_ID,LOCKED_BY_USER_ID,LOCKED_TIMESTAMP,NEVER_UPDATE_GROUP_IND FROM RMS_OWNER.ALC_ALLOC WHERE CREATED_DATE > to_date('%%{CHECKPOINT_VALUE_1}', 'YYYY-MM-DD HH24:MI:SS') AND CREATED_DATE <= to_date('%%{maxCheckPointValue1}', 'YYYY-MM-DD HH24:MI:SS')) a1",
+						"maxCheckPoint1": "select max(CREATED_DATE) from RMS_OWNER.ALC_ALLOC where CREATED_DATE >= to_date('%%{CHECKPOINT_VALUE_1}', 'YYYY-MM-DD HH24:MI:SS')"
+					}
+				}
+			],
+			"fileOutputs": [
+                {
+                    "dataFrameName": "RMS_ALC_ALLOC_L1_DF",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/rms_alc/table/inbound/alc_alloc/",
+                    "saveMode": "Overwrite"
+                },
+                {
+                    "dataFrameName": "RMS_ALC_ALLOC_L1_DF",
+                    "format": "DELTA",
+                    "path": "dbfs:/mnt/data/governed/l1/rms_alc/table/inbound_archive/alc_alloc/",
+                    "saveMode": "Append"
+                }
+            ]
+		},
+		{
+            "name": "GenericPassThroughBatchJob.RMS_ALC_ALLOC_SF",
+            "description": "Pushing data from EDAP into Snowflake",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "fileInputs": [
+                {
+                    "dataFrameName": "RMS_ALC_ALLOC_SF_DF",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/rms_alc/table/inbound/alc_alloc/"
+                }
+            ],
+			"snowflakeOutputs": [
+				{
+					"dataFrameName": "RMS_ALC_ALLOC_SF_DF",
+					"sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+					"sfAccount": "williamssonoma",
+					"keyVaultAuth": {
+						"keyVaultParams": {
+							"clientId": "${spark.wsgc.clientId}",
+							"clientKey": "${spark.wsgc.clientkey}",
+							"vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+							"usernameKey": "${spark.wsgc.usernamekey}",
+							"passwordKey": "${spark.wsgc.passwordkey}"
+						}
+					},
+					"sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+					"sfDatabase": "PROD_EDAP_STAGE_DB",
+					"sfSchema": "PROD_EDAP_STAGE_TABLES",
+					"tableName": "RMS_INV_ALLOCATION_TEMP_STG",
+					"saveMode": "Overwrite"
+				}
+			]
+		}
+	]
+}

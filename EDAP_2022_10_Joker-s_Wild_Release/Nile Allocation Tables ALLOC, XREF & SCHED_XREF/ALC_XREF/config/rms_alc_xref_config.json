@@ -1,0 +1,75 @@
+{
+    "parallelism": 4,
+    "onJobFailure": "Fail",
+    "onEmptyDF": "Fail",
+    "ignoreInvalidRows": true,
+    "cleanColumnNames": true,
+    "jobs": [
+        {
+            "name": "GenericPassThroughBatchJob.RMS_ALC_XREF_L1",
+            "description": "Extract ALC_XREF data from RMS and load into L1 Inbound",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "jdbcInputs": [
+                {
+                    "dataFrameName": "INGEST_L1_DF",
+                    "driver": "oracle.jdbc.driver.OracleDriver",
+                    "flavor": "oracle",
+                    "url": "jdbc:oracle:thin:@RMSDBPRDRK2P.wsgc.com:1521/rmsrep",
+                    "keyVaultAuth": {
+                        "keyVaultParams": {
+                            "clientId": "${spark.wsgc.clientId}",
+                            "clientKey": "${spark.wsgc.clientkey}",
+                            "usernameKey": "${spark.wsgc.usernamekey}",
+                            "passwordKey": "${spark.wsgc.passwordkey}",
+                            "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}"
+                        }
+                    },
+                    "table": "(SELECT XREF_ID, ALLOC_ID, ITEM_ID, WH_ID, RELEASE_DATE, PARENT_ITEM_ID, DIFF1_ID, ORDER_NO, ALLOCATED_QTY, XREF_ALLOC_NO FROM RMS_OWNER.ALC_XREF)a1"
+                }
+            ],
+            "fileOutputs": [
+                {
+                    "dataFrameName": "INGEST_L1_DF",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/rms_alc/table/inbound/alc_xref/",
+                    "saveMode": "Overwrite"
+                }
+            ]
+        },
+        {
+            "name": "GenericPassThroughBatchJob.RMS_ALC_XREF_SF",
+            "description": "Pushing data from NDP into Snowflake",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "fileInputs": [
+                {
+                    "dataFrameName": "INGEST_SF_DF",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/rms_alc/table/inbound/alc_xref/"
+                }
+            ],
+            "snowflakeOutputs": [
+                {
+                    "dataFrameName": "INGEST_SF_DF",
+                    "sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+                    "sfAccount": "williamssonoma",
+                    "keyVaultAuth": {
+                        "keyVaultParams": {
+                            "clientId": "${spark.wsgc.clientId}",
+                            "clientKey": "${spark.wsgc.clientkey}",
+                            "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+                            "usernameKey": "${spark.wsgc.usernamekey}",
+                            "passwordKey": "${spark.wsgc.passwordkey}"
+                        }
+                    },
+                    "sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+                    "sfDatabase": "PROD_EDAP_STAGE_DB",
+                    "sfSchema": "PROD_EDAP_STAGE_TABLES",
+                    "tableName": "RMS_INV_ALLOCATION_XREF_TEMP_STG",
+                    "saveMode": "Overwrite"
+                }
+            ]
+        }
+    ]
+}

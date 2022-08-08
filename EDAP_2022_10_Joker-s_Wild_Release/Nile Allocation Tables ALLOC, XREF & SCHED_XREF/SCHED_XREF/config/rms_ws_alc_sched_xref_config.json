@@ -1,0 +1,75 @@
+{
+    "parallelism": 4,
+    "onJobFailure": "Fail",
+    "onEmptyDF": "Fail",
+    "ignoreInvalidRows": true,
+    "cleanColumnNames": true,
+    "jobs": [
+        {
+            "name": "GenericPassThroughBatchJob.RMS_WS_ALC_SCHED_XREF_L1",
+            "description": "Extract WS_ALC_SCHED_XREF data from RMS and load into L1 Inbound",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "jdbcInputs": [
+                {
+                    "dataFrameName": "INGEST_L1_DF",
+                    "driver": "oracle.jdbc.driver.OracleDriver",
+                    "flavor": "oracle",
+                    "url": "jdbc:oracle:thin:@RMSDBPRDRK2P.wsgc.com:1521/rmsrep",
+                    "keyVaultAuth": {
+                        "keyVaultParams": {
+                            "clientId": "${spark.wsgc.clientId}",
+                            "clientKey": "${spark.wsgc.clientkey}",
+                            "usernameKey": "${spark.wsgc.usernamekey}",
+                            "passwordKey": "${spark.wsgc.passwordkey}",
+                            "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}"
+                        }
+                    },
+                    "table": "(SELECT SCHEDULE_ID, ALLOC_ID, STATUS, CREATED_DATE, SKU_CNT, STORE_CNT, TOT_ALLOC_QTY, AUTO_APPROVE FROM RMS_OWNER.WS_ALC_SCHED_XREF)a1"
+                }
+            ],
+            "fileOutputs": [
+                {
+                    "dataFrameName": "INGEST_L1_DF",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/rms_alc/table/inbound/ws_alc_sched_xref/",
+                    "saveMode": "Overwrite"
+                }
+            ]
+        },
+        {
+            "name": "GenericPassThroughBatchJob.RMS_WS_ALC_SCHED_XREF_SF",
+            "description": "Pushing data from NDP into Snowflake",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "fileInputs": [
+                {
+                    "dataFrameName": "INGEST_SF_DF",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/rms_alc/table/inbound/ws_alc_sched_xref/"
+                }
+            ],
+            "snowflakeOutputs": [
+                {
+                    "dataFrameName": "INGEST_SF_DF",
+                    "sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+                    "sfAccount": "williamssonoma",
+                    "keyVaultAuth": {
+                        "keyVaultParams": {
+                            "clientId": "${spark.wsgc.clientId}",
+                            "clientKey": "${spark.wsgc.clientkey}",
+                            "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+                            "usernameKey": "${spark.wsgc.usernamekey}",
+                            "passwordKey": "${spark.wsgc.passwordkey}"
+                        }
+                    },
+                    "sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+                    "sfDatabase": "PROD_EDAP_STAGE_DB",
+                    "sfSchema": "PROD_EDAP_STAGE_TABLES",
+                    "tableName": "RMS_INV_ALLOCATION_SCHEDULE_STATUS_TEMP_STG",
+                    "saveMode": "Overwrite"
+                }
+            ]
+        }
+    ]
+}

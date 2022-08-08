@@ -1,0 +1,33 @@
+{
+   "qcId": "INV_ALLOCATION",
+   "description": "INV_ALLOCATION QC check",
+   "appQueries": [
+      {
+         "queryId": 1,
+         "description": "INV_ALLOCATION Snowflake-Delta Null Check",
+         "source": {
+            "system": "snowflake",
+            "query": "select cast(count(*) as double) from PROD_EDAP_ANALYTICS_DB.PROD_EDAP_ANALYTICS_TABLES.INV_ALLOCATION where INV_ALLOCATION_KEY IS NULL and INV_ALLOCATION_ID IS NULL",
+            "keyVaultAuth": {
+               "keyVaultParams": {
+                  "clientId": "${spark.wsgc.clientId}",
+                  "clientKey": "${spark.wsgc.clientkey}",
+                  "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+                  "usernameKey": "${spark.wsgc.usernamekey}",
+                  "passwordKey": "${spark.wsgc.passwordkey}"
+               }
+            },
+            "snowflake": {
+               "sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+               "sfAccount": "williamssonoma",
+               "sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+               "sfDatabase": "PROD_EDAP_ANALYTICS_DB",
+               "sfSchema": "PROD_EDAP_ANALYTICS_TABLES"
+            }
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      }
+   ]
+}
