@@ -1,0 +1,52 @@
+{
+    "parallelism": 1,
+    "onJobFailure": "Fail",
+    "onEmptyDF": "Fail",
+    "ignoreInvalidRows": true,
+    "cleanColumnNames": true,
+    "jobs": [
+        {
+            "name": "GenericPassThroughBatchJob.GLOBAL_PO_LINK_L2",
+            "description": "L2_GLOBAL_PO_LINK",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "fileInputs": [
+                {
+                    "dataFrameName": "GLOBAL_PO_LINK_L2",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/global_netsuite/location/table/inbound/global_po_link"
+                },
+                {
+                    "dataFrameName": "PO_HEADER_L2",
+                    "format": "DELTA",
+                    "path": "dbfs:/mnt/data/governed/l2/analytics/purchase_order/po_header_jdbc/"
+                },
+                {
+                    "dataFrameName": "PO_LINE_L2",   
+                    "format": "DELTA",
+                    "path": "dbfs:/mnt/data/governed/l2/analytics/purchase_order/po_line_jdbc/"
+                }
+            ],
+            "transformDataInputs": [
+                {
+                    "dataFrameName": "GLOBAL_PO_LINK_L2",
+                    "nestedStructure": "true",
+                    "transformationsPath": "/dbfs/FileStore/tables/config/netsuite_administrator/transactions_invoice/global_po_link_config_l1_l2_transform.json"
+                }
+            ],
+            "deltaOutputs": [
+                {
+                    "OverwriteSchema": "true",
+                    "dataFrameName": "GLOBAL_PO_LINK_L2",
+                    "dbName": "L2_STAGE",
+                    "queryPaths": [
+                        "/dbfs/FileStore/tables/sql/netsuite_administrator/transactions_invoice/global_po_link_merge_into_edap.sql"
+                        
+                    ],
+                    "saveMode": "Overwrite",
+                    "tableName": "GLOBAL_PO_LINK_STG"
+                }
+            ]
+        }
+    ]
+}

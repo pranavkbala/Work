@@ -1,0 +1,64 @@
+{
+   "qcId": "GLOBAL_PO_LINK",
+   "description": "GLOBAL_PO_LINK QC prod check",
+   "appQueries": [
+      
+      {
+         "queryId": 1,
+         "description": "L2-GLOBAL_PO_LINK Null Check",
+         "source": {
+            "query": "select cast(count(*) as double) from L2_ANALYTICS_TABLES.GLOBAL_PO_LINK where ORIGINAL_PO_HEADER_ID is null and ORIGINAL_PO_LINE_ID is null and APPLIED_PO_ID is null and APPLIED_PO_LINE_ID is null and LINK_TYPE_CD is null"
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      },
+      {
+         "queryId": 2,
+         "description": "L2-GLOBAL_PO_LINK Duplicate Key Check",
+         "source": {
+            "query": "select cast(count(*) as double) from (SELECT GLOBAL_PO_LINK_KEY FROM L2_ANALYTICS_TABLES.GLOBAL_PO_LINK where LAST_EFFECTIVE_TS ='9999-12-31T23:59:59.000+0000' GROUP BY GLOBAL_PO_LINK_KEY HAVING COUNT(*) >1)"
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      },
+      {
+         "queryId": 3,
+         "description": "GLOBAL_PO_LINK Duplicate ID Check",
+         "source": {
+            "query": "select cast(count(*) as double) from (SELECT ORIGINAL_PO_HEADER_ID,ORIGINAL_PO_LINE_ID,APPLIED_PO_ID,APPLIED_PO_LINE_ID,LINK_TYPE_CD FROM L2_ANALYTICS_TABLES.GLOBAL_PO_LINK where LAST_EFFECTIVE_TS ='9999-12-31T23:59:59.000+0000' GROUP BY ORIGINAL_PO_HEADER_ID,ORIGINAL_PO_LINE_ID,APPLIED_PO_ID,APPLIED_PO_LINE_ID,LINK_TYPE_CD HAVING COUNT(*) > 1)"
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      },
+      {
+         "queryId": 4,
+         "description": "GLOBAL_PO_LINK Snowflake-Delta Count Check",
+         "source": {
+            "system": "snowflake",
+            "query": "select cast(count(*) as double) from PROD_EDAP_ANALYTICS_DB.PROD_EDAP_ANALYTICS_TABLES.GLOBAL_PO_LINK",
+            "keyVaultAuth": {
+               "keyVaultParams": {
+                  "clientId": "${spark.wsgc.clientId}",
+                  "clientKey": "${spark.wsgc.clientkey}",
+                  "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+                  "usernameKey": "${spark.wsgc.usernamekey}",
+                  "passwordKey": "${spark.wsgc.passwordkey}"
+               }
+            },
+            "snowflake": {
+               "sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+               "sfAccount": "williamssonoma",
+               "sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+               "sfDatabase": "PROD_EDAP_ANALYTICS_DB",
+               "sfSchema": "PROD_EDAP_ANALYTICS_TABLES"
+            }
+         },
+         "target": {
+            "query": "select cast(count(*) as double) from L2_ANALYTICS_TABLES.GLOBAL_PO_LINK"
+         }
+      }
+   ]
+}

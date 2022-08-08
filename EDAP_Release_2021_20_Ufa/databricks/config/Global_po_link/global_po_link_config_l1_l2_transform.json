@@ -1,0 +1,197 @@
+{
+    "transformations": [
+      {
+      "transformType": "dropDuplicates",
+      "columnMapping": [
+                {
+              "sortProperties": {
+                "DATE_LAST_MODIFIED": "desc"
+              },
+                    "groupKeys": [
+                "ORIGINAL_TRANSACTION_ID", "ORIGINAL_TRANSACTION_LINE_ID", 
+                 "APPLIED_TRANSACTION_ID","APPLIED_TRANSACTION_LINE_ID", "DATE_LAST_MODIFIED", "AMOUNT_FOREIGN_LINKED", "AMOUNT_LINKED", 
+                "QUANTITY_LINKED", "DISCOUNT", "LINK_TYPE_CODE", "LINK_TYPE", "INVENTORY_NUMBER", "ORIGINAL_DATE_POSTED", "APPLIED_DATE_POSTED"
+            ]
+          }
+            ]
+    },
+    {
+        "transformType": "mapping",
+        "columnMapping": [
+          
+          {
+                    "default": "-1",
+                    "targetCol": "GLOBAL_PO_LINK_KEY"
+                },
+        
+          {
+            "sourceCol": "AMOUNT_FOREIGN_LINKED",
+            "targetCol": "FOREIGN_LINKED_AMT"
+          },
+          {
+            "sourceCol": "AMOUNT_LINKED",
+            "targetCol": "LINKED_AMT"
+          },
+          {
+            "sourceCol": "APPLIED_DATE_POSTED",
+            "targetCol": "APPLIED_POSTED_DT"
+          },
+          {
+            "sourceCol": "APPLIED_TRANSACTION_ID",
+            "targetCol": "APPLIED_PO_ID"
+          },
+          {
+            "sourceCol": "APPLIED_TRANSACTION_LINE_ID",
+            "targetCol": "APPLIED_PO_LINE_ID"
+          },
+          {
+            "sourceCol": "DATE_LAST_MODIFIED",
+            "targetCol": "FIRST_EFFECTIVE_TS"
+          },
+          {
+            "sourceCol": "DISCOUNT",
+            "targetCol": "DISCOUNT_FLAG"
+          },
+          {
+            "sourceCol": "INVENTORY_NUMBER",
+            "targetCol": "INVENTORY_NBR"
+          },
+          {
+            "sourceCol": "LINK_TYPE",
+            "targetCol": "LINK_TYPE_DESC"
+          },
+          { 
+            "sourceCol": "LINK_TYPE_CODE",
+            "targetCol": "LINK_TYPE_CD"
+            
+          },
+          {
+            "default": "9999-12-31T23:59:59",
+            "targetCol": "LAST_EFFECTIVE_TS"
+          },
+          {
+            "sourceCol": "ORIGINAL_DATE_POSTED",
+            "targetCol": "ORIGINAL_POSTED_DT"
+          },
+          {
+            "sourceCol": "ORIGINAL_TRANSACTION_ID",
+            "targetCol": "ORIGINAL_PO_HEADER_ID"
+          },
+           {
+            "sourceCol": "ORIGINAL_TRANSACTION_LINE_ID",
+            "targetCol": "ORIGINAL_PO_LINE_ID"
+          },
+           {
+            "sourceCol": "PO_HEADER_KEY",
+            "targetCol": "ORIGINAL_PO_HEADER_KEY"
+          },
+           {
+            "sourceCol": "PO_LINE_KEY",
+            "targetCol": "ORIGINAL_PO_LINE_KEY"
+          },
+          {
+            "sourceCol": "QUANTITY_LINKED",
+            "targetCol": "LINKED_QTY"
+          },
+          {
+            "default": "-1",
+            "targetCol": "APPLIED_PO_HEADER_KEY"
+          },
+          {
+            "default": "-1",
+            "targetCol": "APPLIED_PO_LINE_KEY"
+          },
+          {
+            "targetCol": "INSERT_TS",
+            "dateTimeAttributes": {
+              "currDateTime": "current_timestamp",
+              "targetColdateTimeFormats": "yyyy-MM-dd HH:mm:ss.000"
+            }
+          },
+          {
+            "targetCol": "UPDATE_TS",
+            "dateTimeAttributes": {
+              "currDateTime": "current_timestamp",
+              "targetColdateTimeFormats": "yyyy-MM-dd HH:mm:ss.000"
+            }
+          }
+        ]
+      },
+      {
+        "transformType": "join",
+        "joinAtrributes":[
+               {
+                    "dataFrameName": "PO_HEADER_L2",
+                    "joinConditions": "trim(PO_HEADER_L2.PO_ID) = TRIM(STRING(INT(GLOBAL_PO_LINK_L2.ORIGINAL_PO_HEADER_ID))) AND PO_HEADER_L2.SOURCE_SYSTEM ='GLOBAL_NETSUITE' AND PO_HEADER_L2.LAST_EFFECTIVE_TS = '9999-12-31T23:59:59.000+0000'",           
+                    "joinType": "leftouter"
+                },
+            
+             {
+                    "dataFrameName": "PO_LINE_L2",
+                    "joinConditions": "trim(PO_LINE_L2.PO_LINE_ID) = concat(TRIM(STRING(INT(GLOBAL_PO_LINK_L2.ORIGINAL_PO_HEADER_ID))) ,'-',TRIM(STRING(INT(GLOBAL_PO_LINK_L2.ORIGINAL_PO_LINE_ID)))) AND PO_LINE_L2.SOURCE_SYSTEM ='GLOBAL_NETSUITE' AND PO_LINE_L2.LAST_EFFECTIVE_TS = '9999-12-31T23:59:59.000+0000'",           
+                    "joinType": "leftouter"
+                }
+        ],
+      
+        "selectExprs": [
+          "CAST(GLOBAL_PO_LINK_KEY AS BIGINT) AS GLOBAL_PO_LINK_KEY",
+          "CAST(COALESCE(PO_HEADER_L2.PO_HEADER_KEY,-1) AS BIGINT) AS ORIGINAL_PO_HEADER_KEY",
+          "TRIM(STRING(INT(GLOBAL_PO_LINK_L2.ORIGINAL_PO_HEADER_ID))) AS ORIGINAL_PO_HEADER_ID",
+          "CAST(COALESCE(PO_LINE_L2.PO_LINE_KEY,-1) AS BIGINT) AS ORIGINAL_PO_LINE_KEY",
+          "TRIM(STRING(INT(GLOBAL_PO_LINK_L2.ORIGINAL_PO_LINE_ID))) AS ORIGINAL_PO_LINE_ID",
+          "CAST(GLOBAL_PO_LINK_L2.APPLIED_PO_HEADER_KEY AS BIGINT) AS APPLIED_PO_HEADER_KEY",
+          "TRIM(STRING(INT(GLOBAL_PO_LINK_L2.APPLIED_PO_ID))) AS APPLIED_PO_ID",
+          "CAST(GLOBAL_PO_LINK_L2.APPLIED_PO_LINE_KEY AS BIGINT) AS APPLIED_PO_LINE_KEY",
+          "TRIM(STRING(INT(GLOBAL_PO_LINK_L2.APPLIED_PO_LINE_ID))) AS APPLIED_PO_LINE_ID",
+          "TIMESTAMP(GLOBAL_PO_LINK_L2.FIRST_EFFECTIVE_TS) AS FIRST_EFFECTIVE_TS",
+          "TIMESTAMP(GLOBAL_PO_LINK_L2.LAST_EFFECTIVE_TS) AS LAST_EFFECTIVE_TS",
+          "CAST(GLOBAL_PO_LINK_L2.FOREIGN_LINKED_AMT AS DECIMAL(15,4)) AS FOREIGN_LINKED_AMT",
+          "CAST(GLOBAL_PO_LINK_L2.LINKED_AMT AS DECIMAL(15,4)) AS LINKED_AMT",
+          "CAST(GLOBAL_PO_LINK_L2.LINKED_QTY AS INT) AS LINKED_QTY",
+          "case when TRIM(CAST(GLOBAL_PO_LINK_L2.DISCOUNT_FLAG AS CHAR(1))) = 'No' then 'N' when TRIM(CAST(GLOBAL_PO_LINK_L2.DISCOUNT_FLAG AS CHAR(1))) = 'Yes' then 'Y' end AS DISCOUNT_FLAG",
+          "CAST(GLOBAL_PO_LINK_L2.LINK_TYPE_CD AS STRING) AS  LINK_TYPE_CD",
+          "CAST(GLOBAL_PO_LINK_L2.LINK_TYPE_DESC AS STRING) AS LINK_TYPE_DESC",
+          "CAST(GLOBAL_PO_LINK_L2.INVENTORY_NBR AS INT) AS INVENTORY_NBR",
+          "CAST(TIMESTAMP(GLOBAL_PO_LINK_L2.ORIGINAL_POSTED_DT) AS DATE) AS ORIGINAL_POSTED_DT",
+          "CAST(TIMESTAMP(GLOBAL_PO_LINK_L2.APPLIED_POSTED_DT) AS DATE) AS APPLIED_POSTED_DT",
+          "TIMESTAMP(GLOBAL_PO_LINK_L2.INSERT_TS) AS INSERT_TS",
+          "TIMESTAMP(GLOBAL_PO_LINK_L2.UPDATE_TS) AS UPDATE_TS"
+        ]
+      },
+      {
+      "transformType": "dropDuplicates",
+      "columnMapping": [
+                {
+              "sortProperties": {
+                "LAST_EFFECTIVE_TS": "desc"
+              },
+                    "groupKeys": [
+                "GLOBAL_PO_LINK_KEY","ORIGINAL_PO_HEADER_KEY","ORIGINAL_PO_HEADER_ID","ORIGINAL_PO_LINE_KEY", "ORIGINAL_PO_LINE_ID", 
+                "APPLIED_PO_HEADER_KEY", "APPLIED_PO_ID", "APPLIED_PO_LINE_KEY","APPLIED_PO_LINE_ID", "FIRST_EFFECTIVE_TS", "LAST_EFFECTIVE_TS", "FOREIGN_LINKED_AMT", "LINKED_AMT", 
+                "LINKED_QTY", "DISCOUNT_FLAG", "LINK_TYPE_CD", "LINK_TYPE_DESC", "INVENTORY_NBR", "ORIGINAL_POSTED_DT", "APPLIED_POSTED_DT", "INSERT_TS", "UPDATE_TS"
+            ]
+          }
+            ]
+    },
+      {
+      "transformType":"executeQuery",
+      "columnMapping":[
+        {
+          "tableName":"GLOBAL_PO_LINK_STG1_VIEW1",
+          "queryPath":"/dbfs/FileStore/tables/sql/netsuite_administrator/transactions_invoice/global_po_link_cdc_lookup.sql"
+      
+        }
+      ]
+    }, 
+      {
+            "transformType": "executeQuery",
+            "columnMapping": [
+                {   
+                    "tableName": "STG_TEMP_GLOBAL_PO_LINK",
+                    "queryPath": "/dbfs/FileStore/tables/sql/netsuite_administrator/transactions_invoice/global_po_link_surrogate_key_gen.sql"
+                
+                }
+            ]
+        }
+    ]
+  }

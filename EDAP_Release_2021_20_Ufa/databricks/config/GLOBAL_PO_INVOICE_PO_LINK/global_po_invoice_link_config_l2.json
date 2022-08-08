@@ -1,0 +1,57 @@
+{
+    "parallelism": 1,
+    "onJobFailure": "Fail",
+    "onEmptyDF": "Fail",
+    "ignoreInvalidRows": true,
+    "cleanColumnNames": true,
+    "jobs": [
+        {
+            "name": "GenericPassThroughBatchJob.GLOBAL_PO_INVOICE_LINK_L2",
+            "description": "L2_GLOBAL_PO_INVOICE_LINK",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "fileInputs": [
+                {
+                    "dataFrameName": "GLOBAL_PO_INVOICE_LINK_L1",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/global_netsuite/location/table/inbound/global_po_invoice_link"
+                },
+                {
+                    "dataFrameName": "GLOBAL_PO_INVOICE_LINK_L2",
+                    "format": "DELTA",
+                    "path": "dbfs:/mnt/data/governed/l2/analytics/transactions/global_po_invoice_link"
+                },
+                {
+                    "dataFrameName": "INVOICE_L2",
+                    "format": "DELTA",
+                    "path": "dbfs:/mnt/data/governed/l2/analytics/sales/invoice"
+                },
+                {
+                    "dataFrameName": "INVOICE_DETAIL_L2",   
+                    "format": "DELTA",
+                    "path": "dbfs:/mnt/data/governed/l2/analytics/sales/invoice_detail"
+                }
+            ],
+            "transformDataInputs": [
+                {
+                    "dataFrameName": "GLOBAL_PO_INVOICE_LINK_L1",
+                    "nestedStructure": "true",
+                    "transformationsPath": "/dbfs/FileStore/tables/config/netsuite_administrator/transactions_links_invoice/global_po_invoice_link_config_l2_transform.json"
+                }
+            ],
+            "deltaOutputs": [
+                {
+                    "OverwriteSchema": "true",
+                    "dataFrameName": "GLOBAL_PO_INVOICE_LINK_L1",
+                    "dbName": "L2_STAGE",
+                    "queryPaths": [
+                        "/dbfs/FileStore/tables/sql/netsuite_administrator/transactions_links_invoice/global_po_invoice_link_merge_into_edap.sql"
+                        
+                    ],
+                    "saveMode": "Overwrite",
+                    "tableName": "GLOBAL_PO_INVOICE_LINK_STG"
+                }
+            ]
+        }
+    ]
+}

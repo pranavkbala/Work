@@ -1,0 +1,46 @@
+{
+   "parallelism":1,
+   "onJobFailure":"Fail",
+   "onEmptyDF":"Fail",
+   "ignoreInvalidRows":true,
+   "cleanColumnNames":true,
+   "jobs":[
+      {
+         "name":"GenericPassThroughBatchJob.FRANCHISE_STORE_HIERARCHY_SF",
+         "description":"FRACNCHISE STORE_HIERARCHY table for Snowflake",
+         "ignoreInvalidRows":true,
+         "cleanColumnNames":true,
+         "deltaInputs":[
+            {
+               "dataFrameName":"FRANCHISE_STORE_HIERARCHY_DF",
+               "dbName":"L2_STAGE",
+               "tableName":"FRANCHISE_STORE_HIERARCHY_STG"
+            }
+         ],
+         "snowflakeOutputs":[
+            {
+               "dataFrameName":"FRANCHISE_STORE_HIERARCHY_DF",
+               "sfURL":"williamssonoma.east-us-2.azure.snowflakecomputing.com",
+               "sfAccount":"williamssonoma",
+               "keyVaultAuth": {
+                  "keyVaultParams":{
+                     "clientId":"${spark.wsgc.clientId}",
+                     "clientKey":"${spark.wsgc.clientkey}",
+                     "vaultBaseUrl":"${spark.wsgc.vaultbaseurl}",
+                     "usernameKey":"${spark.wsgc.usernamekey}",
+                     "passwordKey":"${spark.wsgc.passwordkey}"
+                  }
+               },
+               "sfWarehouse":"PROD_EDAP_ANALYTICS_WH",
+               "sfDatabase":"PROD_EDAP_STAGE_DB",
+               "sfSchema":"PROD_EDAP_STAGE_TABLES",
+               "tableName":"FRANCHISE_STORE_HIERARCHY_SF",
+			   "queryPaths":[
+                  "/dbfs/FileStore/tables/sql/global_franchise/liverpool/location/store_hierarchy/franchise_store_hierarchy_merge_into_sf.sql"
+               ],
+			   "saveMode":"Overwrite"
+            }
+         ]
+      }
+   ]
+}

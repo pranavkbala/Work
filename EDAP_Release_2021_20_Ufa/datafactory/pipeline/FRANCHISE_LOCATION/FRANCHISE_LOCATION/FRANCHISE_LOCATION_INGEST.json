@@ -1,0 +1,354 @@
+{
+    "name": "FRANCHISE_LOCATION_INGEST",
+    "properties": {
+        "activities": [
+            {
+                "name": "LOCATION_L2",
+                "type": "DatabricksSparkJar",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.04:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "mainClassName": "com.wsgc.bigdata.SampleBatchAnalytics",
+                    "parameters": [],
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.INGEST_ETL_JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": {
+                            "value": "GenericPassThroughBatchJob.FRANCHISE_STORE_HIERARCHY_L2",
+                            "type": "Expression"
+                        },
+                        "SparkConfig": {
+                            "value": "dbfs:/FileStore/tables/config/global_franchise/liverpool/location/store_hierarchy/config_franchise_store_hierarchy_l2.json",
+                            "type": "Expression"
+                        },
+                        "SparkBroadCastTimeOut": "36000",
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MinWorker": 1,
+                        "MaxWorker": 2,
+                        "ClusterVersion": "6.4.x-scala2.11",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "RunDate": "default",
+                        "clientId": {
+                            "value": "@pipeline().parameters.CLIENT_ID",
+                            "type": "Expression"
+                        },
+                        "clientkey": {
+                            "value": "@pipeline().parameters.CLIENT_KEY",
+                            "type": "Expression"
+                        },
+                        "vaultbaseurl": {
+                            "value": "@pipeline().parameters.VAULT_BASE_URL",
+                            "type": "Expression"
+                        },
+                        "usernamekey": "defaultCubePath",
+                        "passwordkey": "default",
+                        "JdbcURL": "defaultJdbcUrl",
+                        "BatchDuration": 0,
+                        "TimeOut": 0,
+                        "KafkaTopics": "default",
+                        "KafkaGroupId": "default"
+                    }
+                }
+            },
+            {
+                "name": "LOCATION_SF",
+                "type": "DatabricksSparkJar",
+                "dependsOn": [
+                    {
+                        "activity": "LOCATION_L2",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.04:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "mainClassName": "com.wsgc.bigdata.SampleBatchAnalytics",
+                    "parameters": [],
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.INGEST_ETL_JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": "GenericPassThroughBatchJob.FRANCHISE_STORE_HIERARCHY_SF",
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.SNOWFLAKE_CONFIG",
+                            "type": "Expression"
+                        },
+                        "SparkBroadCastTimeOut": "36000",
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MinWorker": 1,
+                        "MaxWorker": 2,
+                        "ClusterVersion": "6.4.x-scala2.11",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "RunDate": "default",
+                        "clientId": {
+                            "value": "@pipeline().parameters.CLIENT_ID",
+                            "type": "Expression"
+                        },
+                        "clientkey": {
+                            "value": "@pipeline().parameters.CLIENT_KEY",
+                            "type": "Expression"
+                        },
+                        "vaultbaseurl": {
+                            "value": "@pipeline().parameters.VAULT_BASE_URL",
+                            "type": "Expression"
+                        },
+                        "usernamekey": {
+                            "value": "@pipeline().parameters.SNOWFLAKE_USER_NAME_KEY",
+                            "type": "Expression"
+                        },
+                        "passwordkey": {
+                            "value": "@pipeline().parameters.SNOWFLAKE_PASSWORD_KEY",
+                            "type": "Expression"
+                        },
+                        "JdbcURL": "defaultJdbcUrl",
+                        "BatchDuration": 0,
+                        "TimeOut": 0,
+                        "KafkaTopics": "default",
+                        "KafkaGroupId": "default"
+                    }
+                }
+            },
+            {
+                "name": "DQ_CHECK",
+                "type": "DatabricksNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "LOCATION_SF",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.04:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "notebookPath": "/Shared/QC/Generic_CoreQC_Source_Target",
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.INGEST_ETL_JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": {
+                            "value": "@pipeline().parameters.INGEST_ETL_JAR",
+                            "type": "Expression"
+                        },
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.QC_CONFIG",
+                            "type": "Expression"
+                        },
+                        "SparkBroadCastTimeOut": "36000",
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MinWorker": 1,
+                        "MaxWorker": 2,
+                        "ClusterVersion": "6.4.x-esr-scala2.11",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "RunDate": "default",
+                        "clientId": {
+                            "value": "@pipeline().parameters.CLIENT_ID",
+                            "type": "Expression"
+                        },
+                        "clientkey": {
+                            "value": "@pipeline().parameters.CLIENT_KEY",
+                            "type": "Expression"
+                        },
+                        "vaultbaseurl": {
+                            "value": "@pipeline().parameters.VAULT_BASE_URL",
+                            "type": "Expression"
+                        },
+                        "usernamekey": {
+                            "value": "@pipeline().parameters.SNOWFLAKE_USER_NAME_KEY",
+                            "type": "Expression"
+                        },
+                        "passwordkey": {
+                            "value": "@pipeline().parameters.SNOWFLAKE_PASSWORD_KEY",
+                            "type": "Expression"
+                        },
+                        "JdbcURL": "defaultJdbcUrl",
+                        "BatchDuration": 3000,
+                        "TimeOut": 900000,
+                        "KafkaTopics": "default",
+                        "KafkaGroupId": "default"
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "SQL_BROADCAST_TIMEOUT": {
+                "type": "string",
+                "defaultValue": "36000"
+            },
+            "MAIN_CLASS": {
+                "type": "string",
+                "defaultValue": "com.wsgc.bigdata.SampleBatchAnalytics"
+            },
+            "QC_CONFIG": {
+                "type": "string",
+                "defaultValue": "/dbfs/FileStore/tables/config/global_franchise/location_dq/franchise_location_dq_check.json"
+            },
+            "L2_CONFIG": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/tables/config/global_franchise/liverpool/location/store_hierarchy/config_franchise_store_hierarchy_l2.json"
+            },
+            "SNOWFLAKE_CONFIG": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/tables/config/global_franchise/liverpool/location/store_hierarchy/franchise_store_hierarchy_config_sf.json"
+            },
+            "DMZ_PATH": {
+                "type": "string",
+                "defaultValue": "/Home/azuredevuser/outbound/kpireporting/franchise/liverpool/"
+            },
+            "Target_L0_STORE_HIERARCHY": {
+                "type": "string",
+                "defaultValue": "/data/governed/l0/global_franchise/liverpool/location/file/inbound/store_hierarchy/"
+            },
+            "JAR": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/jars/8ed171a0_c377_4389_a6aa_89480894f9ea-big_analytics_generic_ingestion_Planck2020_v1-59d48.jar"
+            },
+            "INGEST_ETL_JAR": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/jars/89af27f8_dada_4f24_bf77_258621a542c6-big_analytics_generic_ingestion_Pythagoras.jar"
+            },
+            "CLIENT_ID": {
+                "type": "string",
+                "defaultValue": "a775e1b6-796d-49aa-b4ae-c478d7892f38"
+            },
+            "CLIENT_KEY": {
+                "type": "string",
+                "defaultValue": "6bMa+_SX@XuG?MM3fzxL5o7Q_KW1=*jt"
+            },
+            "VAULT_BASE_URL": {
+                "type": "string",
+                "defaultValue": "https://prod-edap-key-vault.vault.azure.net"
+            },
+            "SNOWFLAKE_USER_NAME_KEY": {
+                "type": "string",
+                "defaultValue": "ADF-SnowFlake-Userkey"
+            },
+            "SNOWFLAKE_PASSWORD_KEY": {
+                "type": "string",
+                "defaultValue": "ADF-SnowFlake-PassKey"
+            }
+        },
+        "annotations": [],
+        "lastPublishTime": "2021-10-17T11:18:04Z"
+    },
+    "type": "Microsoft.DataFactory/factories/pipelines"
+}

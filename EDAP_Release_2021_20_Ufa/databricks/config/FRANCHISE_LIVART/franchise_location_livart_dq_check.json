@@ -1,0 +1,74 @@
+{
+   "qcId": "LOCATION",
+   "description": "LOCATION QC check",
+   "appQueries": [
+      {
+         "queryId": 1,
+         "description": "L1 & L2-LOCATION Count Check",
+         "source": {
+            "query": "create or replace temporary view LOCATION_TABLE as (select distinct * from parquet.`/mnt/data/governed/l1/global_franchise/livart/location/file/inbound/store_hierarchy/`); select cast(count(*) as double) from LOCATION_TABLE"
+         },
+         "target": {
+            "query": "select cast(count(*) as double) from L2_ANALYTICS_TABLES.LOCATION where insert_ts = (select max(insert_ts) from L2_ANALYTICS_TABLES.LOCATION) and SOURCE_SYSTEM = 'GLOBAL_FRANCHISE_LIVART'"
+         }
+      },
+      {
+         "queryId": 2,
+         "description": "L2-LOCATION Null Check",
+         "source": {
+            "query": "select cast(count(*) as double) from L2_ANALYTICS_TABLES.LOCATION where LOCATION_KEY IS NULL"
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      },
+      {
+         "queryId": 3,
+         "description": "L2-LOCATION Duplicate Key Check",
+         "source": {
+            "query": "select cast(count(*) as double) from (SELECT LOCATION_KEY FROM L2_ANALYTICS_TABLES.LOCATION GROUP BY LOCATION_KEY HAVING COUNT(*) > 1)"
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      },
+      {
+         "queryId": 4,
+         "description": "L2-LOCATION Duplicate ID Check",
+         "source": {
+            "query": "select cast(count(*) as double) from (SELECT LOCATION_ID FROM (SELECT * FROM L2_ANALYTICS_TABLES.LOCATION WHERE SOURCE_SYSTEM = 'GLOBAL_FRANCHISE_LIVART') GROUP BY LOCATION_ID HAVING COUNT(*) > 1)"
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      },
+
+      {
+         "queryId": 5,
+         "description": "LOCATION Snowflake-Delta Count Check",
+         "source": {
+            "system": "snowflake",
+            "query": "select cast(count(*) as double) from PROD_EDAP_ANALYTICS_DB.PROD_EDAP_ANALYTICS_TABLES.LOCATION WHERE SOURCE_SYSTEM = 'GLOBAL_FRANCHISE_LIVART'",
+            "keyVaultAuth": {
+               "keyVaultParams": {
+                  "clientId": "${spark.wsgc.clientId}",
+                  "clientKey": "${spark.wsgc.clientkey}",
+                  "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+                  "usernameKey": "${spark.wsgc.usernamekey}",
+                  "passwordKey": "${spark.wsgc.passwordkey}"
+               }
+            },
+            "snowflake": {
+               "sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+               "sfAccount": "williamssonoma",
+               "sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+               "sfDatabase": "PROD_EDAP_ANALYTICS_DB",
+               "sfSchema": "PROD_EDAP_ANALYTICS_TABLES"
+            }
+         },
+         "target": {
+            "query": "select cast(count(*) as double) from L2_ANALYTICS_TABLES.LOCATION WHERE SOURCE_SYSTEM = 'GLOBAL_FRANCHISE_LIVART'"
+         }
+      }
+   ]
+}

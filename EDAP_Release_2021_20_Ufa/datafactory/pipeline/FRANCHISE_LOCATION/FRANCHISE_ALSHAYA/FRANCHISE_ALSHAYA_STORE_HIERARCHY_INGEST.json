@@ -1,0 +1,555 @@
+{
+    "name": "FRANCHISE_ALSHAYA_STORE_HIERARCHY_INGEST",
+    "properties": {
+        "activities": [
+            {
+                "name": "CHECK_DMZ_FILE",
+                "type": "GetMetadata",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.04:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "DMZ_FILE_TXT",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "PATH": {
+                                "value": "@pipeline().parameters.DMZ_PATH",
+                                "type": "Expression"
+                            },
+                            "FILE_NAME": "*STORE_HIERARCHY*.csv",
+                            "DELIMETER": ",",
+                            "HEADER": false
+                        }
+                    },
+                    "fieldList": [
+                        "childItems"
+                    ],
+                    "storeSettings": {
+                        "type": "SftpReadSettings",
+                        "recursive": true,
+                        "enablePartitionDiscovery": false
+                    },
+                    "formatSettings": {
+                        "type": "DelimitedTextReadSettings"
+                    }
+                }
+            },
+            {
+                "name": "IF_DMZ_STORE_HIERARCHY_FILE_EXISTS_copy1",
+                "type": "IfCondition",
+                "dependsOn": [
+                    {
+                        "activity": "CHECK_DMZ_FILE",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@not(empty(activity('CHECK_DMZ_FILE').output.childItems))",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "STORE_HIERARCHY_STAGE_L2",
+                "type": "DatabricksSparkJar",
+                "dependsOn": [
+                    {
+                        "activity": "STORE_HIERARCHY_L1",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.04:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "mainClassName": "com.wsgc.bigdata.SampleBatchAnalytics",
+                    "parameters": [],
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.INGEST_ETL_JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": "GenericPassThroughBatchJob.FRANCHISE_ALSHAYA_STORE_HIERARCHY_STAGE_L2",
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.L2_STAGE_CONFIG",
+                            "type": "Expression"
+                        },
+                        "SparkBroadCastTimeOut": "36000",
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MinWorker": 1,
+                        "MaxWorker": 2,
+                        "ClusterVersion": "6.4.x-scala2.11",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "RunDate": "default",
+                        "clientId": {
+                            "value": "@pipeline().parameters.CLIENT_ID",
+                            "type": "Expression"
+                        },
+                        "clientkey": {
+                            "value": "@pipeline().parameters.CLIENT_KEY",
+                            "type": "Expression"
+                        },
+                        "vaultbaseurl": {
+                            "value": "@pipeline().parameters.VAULT_BASE_URL",
+                            "type": "Expression"
+                        },
+                        "usernamekey": "defaultCubePath",
+                        "passwordkey": "default",
+                        "JdbcURL": "defaultJdbcUrl",
+                        "BatchDuration": 0,
+                        "TimeOut": 0,
+                        "KafkaTopics": "default",
+                        "KafkaGroupId": "default"
+                    }
+                }
+            },
+            {
+                "name": "STORE_HIERARCHY_L1",
+                "type": "DatabricksSparkJar",
+                "dependsOn": [
+                    {
+                        "activity": "CLEAN_ALSHAYA",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.04:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "mainClassName": {
+                        "value": "@pipeline().parameters.MAIN_CLASS",
+                        "type": "Expression"
+                    },
+                    "parameters": [],
+                    "libraries": [
+                        {
+                            "jar": "dbfs:/FileStore/tables/jars/big_analytics_generic_ingestion_Planck2020_v1.jar"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": "GenericPassThroughBatchJob.FRANCHISE_ALSHAYA_STORE_HIERARCHY_L1",
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.L1_CONFIG",
+                            "type": "Expression"
+                        },
+                        "SparkBroadCastTimeOut": "36000",
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MinWorker": 1,
+                        "MaxWorker": 2,
+                        "ClusterVersion": "6.4.x-scala2.11",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "RunDate": "default",
+                        "clientId": "defaultClientID",
+                        "clientkey": "defaultClientKey",
+                        "vaultbaseurl": "defaultOutPath",
+                        "usernamekey": "defaultUserNameKey",
+                        "passwordkey": "defaultPasswordKey",
+                        "JdbcURL": "defaultJdbcUrl",
+                        "BatchDuration": 0,
+                        "TimeOut": 0,
+                        "KafkaTopics": "default",
+                        "KafkaGroupId": "default"
+                    }
+                }
+            },
+            {
+                "name": "COPY_DMZ_STORE_HIERARCHY",
+                "type": "Copy",
+                "dependsOn": [
+                    {
+                        "activity": "IF_DMZ_STORE_HIERARCHY_FILE_EXISTS_copy1",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.04:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "source": {
+                        "type": "DelimitedTextSource",
+                        "storeSettings": {
+                            "type": "SftpReadSettings",
+                            "recursive": true,
+                            "wildcardFolderPath": {
+                                "value": "@pipeline().parameters.DMZ_PATH",
+                                "type": "Expression"
+                            },
+                            "wildcardFileName": "*STORE_HIERARCHY*.csv",
+                            "enablePartitionDiscovery": false
+                        },
+                        "formatSettings": {
+                            "type": "DelimitedTextReadSettings"
+                        }
+                    },
+                    "sink": {
+                        "type": "DelimitedTextSink",
+                        "storeSettings": {
+                            "type": "AzureDataLakeStoreWriteSettings"
+                        },
+                        "formatSettings": {
+                            "type": "DelimitedTextWriteSettings",
+                            "quoteAllText": true,
+                            "fileExtension": ".txt"
+                        }
+                    },
+                    "enableStaging": false,
+                    "translator": {
+                        "type": "TabularTranslator",
+                        "typeConversion": true,
+                        "typeConversionSettings": {
+                            "allowDataTruncation": true,
+                            "treatBooleanAsNumber": false
+                        }
+                    }
+                },
+                "inputs": [
+                    {
+                        "referenceName": "DMZ_FILE_TXT",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "PATH": {
+                                "value": "@pipeline().parameters.DMZ_PATH",
+                                "type": "Expression"
+                            },
+                            "FILE_NAME": {
+                                "value": "@pipeline().parameters.DMZ_PATH",
+                                "type": "Expression"
+                            },
+                            "DELIMETER": ",",
+                            "HEADER": false
+                        }
+                    }
+                ],
+                "outputs": [
+                    {
+                        "referenceName": "ADL_FILE_TXT",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "PATH": {
+                                "value": "@pipeline().parameters.Target_L0_STORE_HIERARCHY",
+                                "type": "Expression"
+                            },
+                            "FILE_NAME": "STORE_HIERARCHY.txt",
+                            "HEADER": true
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "CLEAN_ALSHAYA",
+                "type": "DatabricksNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "COPY_DMZ_STORE_HIERARCHY",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.04:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "notebookPath": "/Users/ssingh28@wsgc.com/STORE_HIERARCHY_ALSHAYA_CLEAN"
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_L_5_3_PY",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "DistList": "skarakula@wsgc.com",
+                        "smtpHost": "RKEX10cas2.wsgc.com",
+                        "notification_file_path": "dbfs:/mnt/ewa/governed/skhanna/l0/cheetah/edm/contact_response/file/notification/"
+                    }
+                }
+            },
+            {
+                "name": "DQ_CHECK",
+                "type": "DatabricksNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "STORE_HIERARCHY_STAGE_L2",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.04:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "notebookPath": "/Shared/QC/Generic_CoreQC_Source_Target",
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.INGEST_ETL_JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": {
+                            "value": "@pipeline().parameters.INGEST_ETL_JAR",
+                            "type": "Expression"
+                        },
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.QC_CONFIG",
+                            "type": "Expression"
+                        },
+                        "SparkBroadCastTimeOut": "36000",
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MinWorker": 1,
+                        "MaxWorker": 2,
+                        "ClusterVersion": "6.4.x-scala2.11",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "RunDate": "default",
+                        "clientId": {
+                            "value": "@pipeline().parameters.CLIENT_ID",
+                            "type": "Expression"
+                        },
+                        "clientkey": {
+                            "value": "@pipeline().parameters.CLIENT_KEY",
+                            "type": "Expression"
+                        },
+                        "vaultbaseurl": {
+                            "value": "@pipeline().parameters.VAULT_BASE_URL",
+                            "type": "Expression"
+                        },
+                        "JdbcURL": "defaultJdbcUrl",
+                        "BatchDuration": 0,
+                        "TimeOut": 0,
+                        "KafkaTopics": "default",
+                        "KafkaGroupId": "default"
+                    }
+                }
+            },
+            {
+                "name": "Delete_DMZ_STORE_HIERARCHY",
+                "type": "Delete",
+                "dependsOn": [
+                    {
+                        "activity": "DQ_CHECK",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.04:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "DMZ_FILE_TXT",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "PATH": {
+                                "value": "@pipeline().parameters.DMZ_PATH",
+                                "type": "Expression"
+                            },
+                            "FILE_NAME": {
+                                "value": "@pipeline().parameters.DMZ_PATH",
+                                "type": "Expression"
+                            },
+                            "DELIMETER": "|",
+                            "HEADER": true
+                        }
+                    },
+                    "enableLogging": false,
+                    "storeSettings": {
+                        "type": "SftpReadSettings",
+                        "recursive": false,
+                        "wildcardFileName": "*STORE_HIERARCHY*.csv",
+                        "enablePartitionDiscovery": false
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "SQL_BROADCAST_TIMEOUT": {
+                "type": "string",
+                "defaultValue": "36000"
+            },
+            "MAIN_CLASS": {
+                "type": "string",
+                "defaultValue": "com.wsgc.bigdata.SampleBatchAnalytics"
+            },
+            "L1_CONFIG": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/tables/config/global_franchise/alshaya/location/store_hierarchy/franchise_alshaya_store_hierarchy_l1.json"
+            },
+            "L2_STAGE_CONFIG": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/tables/config/global_franchise/alshaya/location/store_hierarchy/config_franchise_alshaya_store_hierarchy_stage_l2.json"
+            },
+            "DMZ_PATH": {
+                "type": "string",
+                "defaultValue": "/Home/azureuser/outbound/kpireporting/franchise/alshaya/"
+            },
+            "Target_L0_STORE_HIERARCHY": {
+                "type": "string",
+                "defaultValue": "/data/governed/l0/global_franchise/alshaya/location/file/inbound/store_hierarchy/"
+            },
+            "JAR": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/jars/8ed171a0_c377_4389_a6aa_89480894f9ea-big_analytics_generic_ingestion_Planck2020_v1-59d48.jar"
+            },
+            "INGEST_ETL_JAR": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/jars/89af27f8_dada_4f24_bf77_258621a542c6-big_analytics_generic_ingestion_Pythagoras.jar"
+            },
+            "CLIENT_ID": {
+                "type": "string",
+                "defaultValue": "a775e1b6-796d-49aa-b4ae-c478d7892f38"
+            },
+            "CLIENT_KEY": {
+                "type": "string",
+                "defaultValue": "6bMa+_SX@XuG?MM3fzxL5o7Q_KW1=*jt"
+            },
+            "VAULT_BASE_URL": {
+                "type": "string",
+                "defaultValue": "https://prod-edap-key-vault.vault.azure.net"
+            },
+            "QC_CONFIG": {
+                "type": "string",
+                "defaultValue": "/dbfs/FileStore/tables/config/global_franchise/alshaya/location/store_hierarchy/franchise_location_alshaya_dq_check.json"
+            }
+        },
+        "annotations": [],
+        "lastPublishTime": "2021-10-17T10:37:34Z"
+    },
+    "type": "Microsoft.DataFactory/factories/pipelines"
+}

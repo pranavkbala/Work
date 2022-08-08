@@ -1,0 +1,44 @@
+{
+	"parallelism": 1,
+	"onJobFailure": "Fail",
+	"onEmptyDF": "Fail",
+	"ignoreInvalidRows": true,
+	"cleanColumnNames": true,
+	"jobs": [{
+              "name": "GenericPassThroughBatchJob.FRANCHISE_ALSHAYA_STORE_HIERARCHY_L1",
+               "description": "Alshaya Franchise Store Hierarchy File Ingestion from L0 to L1 and L0 to L0-Archive",
+               "ignoreInvalidRows": true,
+               "cleanColumnNames": true,
+               "delimiter": "",
+               "header": false,
+               "fileInputs": [
+            {
+               "dataFrameName": "FRANCHISE_ALSHAYA_STORE_HIERARCHY_DF",
+               "generateCompletionFile": false,
+               "loadCompletedFile": false,
+               "header": true,
+               "cleanColumnNames": true,
+               "trimColumns": [],
+               "delimiter": "|",
+               "inferSchema": false,
+               "format": "CSV",
+               "path": "dbfs:/mnt/data/governed/l0/global_franchise/alshaya/location/file/inbound/store_hierarchy/"
+            }
+         ],
+         "fileOutputs":[
+            {
+               "dataFrameName":"FRANCHISE_ALSHAYA_STORE_HIERARCHY_DF",
+               "format":"PARQUET",
+               "path":"dbfs:/mnt/data/governed/l1/global_franchise/alshaya/location/file/inbound/store_hierarchy/",
+               "saveMode":"Overwrite" 
+            },
+            {
+               "dataFrameName":"FRANCHISE_ALSHAYA_STORE_HIERARCHY_DF",
+               "format":"DELTA",
+               "path":"dbfs:/mnt/data/governed/l1/global_franchise/alshaya/location/file/inbound_archive/store_hierarchy/",
+               "saveMode":"Append"
+            }
+         ]
+       }
+	]
+}

@@ -1,0 +1,80 @@
+{
+  "parallelism":1,
+  "onJobFailure":"Fail",
+  "onEmptyDF":"Fail",
+  "ignoreInvalidRows":true,
+  "cleanColumnNames":true,
+  "jobs":[
+    {
+      "name":"GenericPassThroughBatchJob.FRANCHISE_STORE_HIERARCHY_L2",
+      "description":"Ingest data from Franchise Store_Hierarch-L1 to Store_Hierarchy-L2",
+      "ignoreInvalidRows":true,
+      "cleanColumnNames":true,
+      "fileInputs":[
+        {
+          "dataFrameName":"FRANCHISE_RELIANCE_STORE_HIERARCHY_STAGE",
+          "format":"DELTA",
+          "path":"dbfs:/mnt/data/governed/l2/stage/global_franchise/reliance/location/store_hierarchy/franchise_reliance_store_hierarchy_stage"
+        },
+        {
+          "dataFrameName":"FRANCHISE_ALSHAYA_STORE_HIERARCHY_STAGE",
+          "format":"DELTA",
+          "path":"dbfs:/mnt/data/governed/l2/stage/global_franchise/alshaya/location/store_hierarchy/franchise_alshaya_store_hierarchy_stage"
+        },
+        {
+          "dataFrameName":"FRANCHISE_LIVERPOOL_STORE_HIERARCHY_STAGE",
+          "format":"DELTA",
+          "path":"dbfs:/mnt/data/governed/l2/stage/global_franchise/liverpool/location/store_hierarchy/franchise_liverpool_store_hierarchy_stage"
+        },
+        {
+          "dataFrameName":"FRANCHISE_LIVART_STORE_HIERARCHY_STAGE",
+          "format":"DELTA",
+          "path":"dbfs:/mnt/data/governed/l2/stage/global_franchise/livart/location/store_hierarchy/franchise_livart_store_hierarchy_stage"
+        }
+      ],
+      "deltaOutputs":[
+        {
+          "dataFrameName":"FRANCHISE_RELIANCE_STORE_HIERARCHY_STAGE",
+          "format":"DELTA",
+          "dbName":"L2_STAGE",
+		      "partitions": 1,
+          "tableName":"FRANCHISE_RELIANCE_STORE_HIERARCHY_STAGE",
+          "options": {
+          "path": "dbfs:/mnt/data/governed/l2/stage/global_franchise/reliance/location/store_hierarchy/franchise_store_hierarchy_stage"
+        }},
+        {
+          "dataFrameName":"FRANCHISE_ALSHAYA_STORE_HIERARCHY_STAGE",
+          "format":"DELTA",
+          "dbName":"L2_STAGE",
+          "partitions": 1,
+          "tableName":"FRANCHISE_ALSHAYA_STORE_HIERARCHY_STAGE",
+          "options": {
+          "path": "dbfs:/mnt/data/governed/l2/stage/global_franchise/alshaya/location/store_hierarchy/franchise_store_hierarchy_stage"
+        }},
+        {
+          "dataFrameName":"FRANCHISE_LIVERPOOL_STORE_HIERARCHY_STAGE",
+          "format":"DELTA",
+          "dbName":"L2_STAGE",
+          "partitions": 1,
+          "tableName":"FRANCHISE_LIVERPOOL_STORE_HIERARCHY_STAGE",
+          "options": {
+          "path": "dbfs:/mnt/data/governed/l2/stage/global_franchise/liverpool/location/store_hierarchy/franchise_store_hierarchy_stage"
+        }},
+        {
+          "dataFrameName":"FRANCHISE_LIVART_STORE_HIERARCHY_STAGE",
+          "format":"DELTA",
+          "dbName":"L2_STAGE",
+          "partitions": 1,
+          "tableName":"FRANCHISE_LIVART_STORE_HIERARCHY_STAGE",
+          "options": {
+          "path": "dbfs:/mnt/data/governed/l2/stage/global_franchise/livart/location/store_hierarchy/franchise_store_hierarchy_stage"
+        },
+        "queryPaths": [
+          "/dbfs/FileStore/tables/sql/global_franchise/liverpool/location/store_hierarchy/franchise_store_hierarchy_merge_into_ndp.sql"
+        ],
+          "saveMode":"Overwrite"
+        }
+      ]
+    }
+  ]
+}

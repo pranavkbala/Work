@@ -1,0 +1,1704 @@
+{
+    "name": "NETSUITE_OH_OL_INGEST",
+    "properties": {
+        "activities": [
+            {
+                "name": "EXISTS_ORDER_TAG",
+                "description": "Wait till TAG_FILE for L2 ingestion is available",
+                "type": "Until",
+                "dependsOn": [
+                    {
+                        "activity": "Waiting for RJ_OH_OL_L1_L2",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@empty(activity('CHECK_ORDER_TAG').output.childItems)",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "IF_ORDER_TAG_NOT_EMPTY",
+                            "type": "IfCondition",
+                            "dependsOn": [
+                                {
+                                    "activity": "CHECK_ORDER_TAG",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "expression": {
+                                    "value": "@not(empty(activity('CHECK_ORDER_TAG').output.childItems))",
+                                    "type": "Expression"
+                                },
+                                "ifTrueActivities": [
+                                    {
+                                        "name": "WAIT_L2_TAG",
+                                        "type": "Wait",
+                                        "dependsOn": [],
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "waitTimeInSeconds": {
+                                                "value": "@pipeline().parameters.TAG_WAIT_INTERVAL",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "CHECK_ORDER_TAG",
+                            "type": "GetMetadata",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "1.00:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "dataset": {
+                                    "referenceName": "ADL_DIRECTORY",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "PATH": {
+                                            "value": "@pipeline().parameters.TAG_DIR_ORDER",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                },
+                                "fieldList": [
+                                    "childItems"
+                                ]
+                            }
+                        }
+                    ],
+                    "timeout": "1.00:00:00"
+                }
+            },
+            {
+                "name": "COPY_ORDER_TAG_FILE",
+                "description": "Copy TAG_FILE for blocking DTC  & SSP run",
+                "type": "Copy",
+                "dependsOn": [
+                    {
+                        "activity": "EXISTS_ORDER_TAG",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "1.00:00:00",
+                    "retry": 5,
+                    "retryIntervalInSeconds": 60,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "source": {
+                        "type": "DelimitedTextSource",
+                        "storeSettings": {
+                            "type": "AzureDataLakeStoreReadSettings",
+                            "recursive": true
+                        }
+                    },
+                    "sink": {
+                        "type": "DelimitedTextSink",
+                        "storeSettings": {
+                            "type": "AzureDataLakeStoreWriteSettings"
+                        },
+                        "formatSettings": {
+                            "type": "DelimitedTextWriteSettings",
+                            "quoteAllText": true,
+                            "fileExtension": ".txt"
+                        }
+                    },
+                    "enableStaging": false
+                },
+                "inputs": [
+                    {
+                        "referenceName": "ADL_FILE",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "PATH": {
+                                "value": "@pipeline().parameters.TAG_DIR_SOURCE",
+                                "type": "Expression"
+                            },
+                            "FILE": {
+                                "value": "@pipeline().parameters.TAG_FILE",
+                                "type": "Expression"
+                            }
+                        }
+                    }
+                ],
+                "outputs": [
+                    {
+                        "referenceName": "ADL_FILE",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "PATH": {
+                                "value": "@pipeline().parameters.TAG_DIR_ORDER",
+                                "type": "Expression"
+                            },
+                            "FILE": {
+                                "value": "@concat('NETSUITE_ORDER_',pipeline().parameters.TAG_FILE, '_', convertTimeZone(utcNow(), 'UTC', 'Pacific Standard Time',  'yyyy-MM-dd_HH-mm-ss'),'.log')",
+                                "type": "Expression"
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "NETSUITE_ORDER_TAG_LOCK_L2_SKIP_LOG",
+                "description": "Generate skip log in case L2 load couldn't start due to SSP & DTC run",
+                "type": "Copy",
+                "dependsOn": [
+                    {
+                        "activity": "EXISTS_ORDER_TAG",
+                        "dependencyConditions": [
+                            "Failed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "1.00:00:00",
+                    "retry": 5,
+                    "retryIntervalInSeconds": 60,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "source": {
+                        "type": "DelimitedTextSource",
+                        "storeSettings": {
+                            "type": "AzureDataLakeStoreReadSettings",
+                            "recursive": true
+                        }
+                    },
+                    "sink": {
+                        "type": "DelimitedTextSink",
+                        "storeSettings": {
+                            "type": "AzureDataLakeStoreWriteSettings"
+                        },
+                        "formatSettings": {
+                            "type": "DelimitedTextWriteSettings",
+                            "quoteAllText": true,
+                            "fileExtension": ".txt"
+                        }
+                    },
+                    "enableStaging": false
+                },
+                "inputs": [
+                    {
+                        "referenceName": "ADL_FILE",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "PATH": {
+                                "value": "@pipeline().parameters.TAG_DIR_SOURCE",
+                                "type": "Expression"
+                            },
+                            "FILE": {
+                                "value": "@pipeline().parameters.TAG_FILE",
+                                "type": "Expression"
+                            }
+                        }
+                    }
+                ],
+                "outputs": [
+                    {
+                        "referenceName": "ADL_FILE",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "PATH": {
+                                "value": "@pipeline().parameters.SKIP_LOG_DIR_ORDER",
+                                "type": "Expression"
+                            },
+                            "FILE": {
+                                "value": "@concat('NETSUITE_ORDER_TAG_LOCK_', convertTimeZone(utcNow(), 'UTC', 'Pacific Standard Time',  'yyyy-MM-dd_HH-mm-ss'),'.log')",
+                                "type": "Expression"
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "DELETE_ORDER_TAG_FILE",
+                "description": "Delete L2 TAG_FILE for releasing application hold",
+                "type": "Delete",
+                "dependsOn": [
+                    {
+                        "activity": "DELETE_L1_NETSUITE_OH_INBOUND",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    },
+                    {
+                        "activity": "DELETE_L1_NETSUITE_OL_INBOUND",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "1.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "ADL_FILE",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "PATH": {
+                                "value": "@pipeline().parameters.TAG_DIR_ORDER",
+                                "type": "Expression"
+                            },
+                            "FILE": {
+                                "value": "@concat('NETSUITE_ORDER_',pipeline().parameters.TAG_FILE,'*')",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "enableLogging": false,
+                    "storeSettings": {
+                        "type": "AzureDataLakeStoreReadSettings",
+                        "recursive": false
+                    }
+                }
+            },
+            {
+                "name": "WAIT_TAG_FILE_REFRESH",
+                "type": "Wait",
+                "dependsOn": [
+                    {
+                        "activity": "COPY_ORDER_TAG_FILE",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "waitTimeInSeconds": {
+                        "value": "@pipeline().parameters.TAG_WAIT_INTERVAL",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "GET_TAG_FILE_COUNT",
+                "type": "GetMetadata",
+                "dependsOn": [
+                    {
+                        "activity": "WAIT_TAG_FILE_REFRESH",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "1.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "ADL_DIRECTORY",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "PATH": {
+                                "value": "@pipeline().parameters.TAG_DIR_ORDER",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "fieldList": [
+                        "childItems"
+                    ]
+                }
+            },
+            {
+                "name": "IF_PARALLEL_TAG_LOC",
+                "description": "If multiple tag files exist at the same time, skip L2 run",
+                "type": "IfCondition",
+                "dependsOn": [
+                    {
+                        "activity": "GET_TAG_FILE_COUNT",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@equals(length(activity('GET_TAG_FILE_COUNT').output.childItems),1)",
+                        "type": "Expression"
+                    },
+                    "ifFalseActivities": [
+                        {
+                            "name": "NETSUITE_ORDER_L2_MULTIPLE_TAG_LOCK",
+                            "description": "Generate L2 load skip log, in case multiple Lock files are available",
+                            "type": "Copy",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "1.00:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "source": {
+                                    "type": "DelimitedTextSource",
+                                    "storeSettings": {
+                                        "type": "AzureDataLakeStoreReadSettings",
+                                        "recursive": true,
+                                        "enablePartitionDiscovery": false
+                                    }
+                                },
+                                "sink": {
+                                    "type": "DelimitedTextSink",
+                                    "storeSettings": {
+                                        "type": "AzureDataLakeStoreWriteSettings"
+                                    },
+                                    "formatSettings": {
+                                        "type": "DelimitedTextWriteSettings",
+                                        "quoteAllText": true,
+                                        "fileExtension": ".txt"
+                                    }
+                                },
+                                "enableStaging": false
+                            },
+                            "inputs": [
+                                {
+                                    "referenceName": "ADL_FILE",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "PATH": {
+                                            "value": "@pipeline().parameters.TAG_DIR_SOURCE",
+                                            "type": "Expression"
+                                        },
+                                        "FILE": {
+                                            "value": "@pipeline().parameters.TAG_FILE",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "referenceName": "ADL_FILE",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "PATH": {
+                                            "value": "@pipeline().parameters.SKIP_LOG_DIR_ORDER",
+                                            "type": "Expression"
+                                        },
+                                        "FILE": {
+                                            "value": "@concat('NETSUITE_ORDER_L2_MULTIPLE_TAG_LOCK_', convertTimeZone(utcNow(), 'UTC', 'Pacific Standard Time',  'yyyy-MM-dd_HH-mm-ss'),'.log')",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "FORCEFAIL_DOUBLE_TAGFOUND",
+                            "type": "Copy",
+                            "dependsOn": [
+                                {
+                                    "activity": "NETSUITE_ORDER_L2_MULTIPLE_TAG_LOCK",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "policy": {
+                                "timeout": "7.00:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "source": {
+                                    "type": "BinarySource",
+                                    "storeSettings": {
+                                        "type": "AzureDataLakeStoreReadSettings",
+                                        "recursive": true
+                                    }
+                                },
+                                "sink": {
+                                    "type": "BinarySink",
+                                    "storeSettings": {
+                                        "type": "AzureDataLakeStoreWriteSettings"
+                                    }
+                                },
+                                "enableStaging": false
+                            },
+                            "inputs": [
+                                {
+                                    "referenceName": "ADL_FILE",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "PATH": {
+                                            "value": "FORCEFAIL_DOUBLE_TAGFOUND",
+                                            "type": "Expression"
+                                        },
+                                        "FILE": {
+                                            "value": "FORCEFAIL_DOUBLE_TAGFOUND",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "referenceName": "ADL_FILE",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "PATH": {
+                                            "value": "FORCEFAIL_DOUBLE_TAGFOUND",
+                                            "type": "Expression"
+                                        },
+                                        "FILE": {
+                                            "value": "FORCEFAIL_DOUBLE_TAGFOUND",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "Waiting for RJ_OH_OL_L1_L2",
+                "type": "Until",
+                "dependsOn": [
+                    {
+                        "activity": "Get_Midnight__Use_7_for_PDT_8_for_PST",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@greater(length(activity('Call API RJ_OH_OL_L1_L2').output.value),0)",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "Wait RJ_OH_OL_L1_L2",
+                            "type": "Wait",
+                            "dependsOn": [
+                                {
+                                    "activity": "Call API RJ_OH_OL_L1_L2",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "waitTimeInSeconds": 300
+                            }
+                        },
+                        {
+                            "name": "Call API RJ_OH_OL_L1_L2",
+                            "type": "WebActivity",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.08:00:00",
+                                "retry": 3,
+                                "retryIntervalInSeconds": 300,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "url": {
+                                    "value": "@concat('https://management.azure.com/subscriptions/',pipeline().parameters.Subscription,'/resourceGroups/',pipeline().parameters.ResourceGroups,'/providers/Microsoft.DataFactory/factories/',pipeline().parameters.DataFactory,'/queryPipelineRuns?api-version=2018-06-01')",
+                                    "type": "Expression"
+                                },
+                                "method": "POST",
+                                "body": {
+                                    "value": "{\n\"lastUpdatedAfter\": \"@{activity('Get_Midnight__Use_7_for_PDT_8_for_PST').value}\",\n\"lastUpdatedBefore\" : \"@{adddays(activity('Get_Midnight__Use_7_for_PDT_8_for_PST').value, 1)}\",\n \"filters\": [\n    {\n      \"operand\": \"PipelineName\",\n      \"operator\": \"Equals\",\n      \"values\": [\n        \"RJ_OH_OL_L1_L2\"\n      ]\n    },\n{\n      \"operand\": \"Status\",\n      \"operator\": \"Equals\",\n      \"values\": [\n        \"Succeeded\"\n      ]\n    }\n  ]\n}",
+                                    "type": "Expression"
+                                },
+                                "authentication": {
+                                    "type": "MSI",
+                                    "resource": "https://management.azure.com"
+                                }
+                            }
+                        }
+                    ],
+                    "timeout": "0.04:00:00"
+                }
+            },
+            {
+                "name": "Get_Midnight__Use_7_for_PDT_8_for_PST",
+                "description": "Gets the value of midnight at PST/PDT. This is used to detect pipeline completion only after 12:00AM PST/PDT. Since all jobs are in GMT, it needs this calculation performed.",
+                "type": "SetVariable",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                    "variableName": "lower_time_bound",
+                    "value": {
+                        "value": "@addhours(startOfDay(addhours(utcnow(), -7)),7)\n",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "QC_NETSUITE_OL",
+                "type": "DatabricksNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "NETSUITE_OL_SF",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.04:00:00",
+                    "retry": 2,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "notebookPath": "/Shared/QC/Generic_CoreQC_Source_Target",
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.INGEST_ETL_JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": {
+                            "value": "@pipeline().parameters.INGEST_ETL_JAR",
+                            "type": "Expression"
+                        },
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.OL_QC_CONFIG",
+                            "type": "Expression"
+                        },
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MaxRatePerPartition": 0,
+                        "MinRatePerPartition": 1,
+                        "GracefulShutdown": "true",
+                        "ClientID": {
+                            "value": "@pipeline().parameters.CLIENT_ID",
+                            "type": "Expression"
+                        },
+                        "ClientKey": {
+                            "value": "@pipeline().parameters.CLIENT_KEY",
+                            "type": "Expression"
+                        },
+                        "ValutBaseUrl": {
+                            "value": "@pipeline().parameters.VAULT_BASE_URL",
+                            "type": "Expression"
+                        },
+                        "UserNameKey": {
+                            "value": "@pipeline().parameters.SNOWFLAKE_USER_NAME_KEY",
+                            "type": "Expression"
+                        },
+                        "PasswordKey": {
+                            "value": "@pipeline().parameters.SNOWFLAKE_PASSWORD_KEY",
+                            "type": "Expression"
+                        },
+                        "MinWorker": 1,
+                        "MaxWorker": 2,
+                        "BatchDuration": 3000,
+                        "TimeOut": 900000,
+                        "BroadCastTimeOut": 36000,
+                        "ClusterVersion": "6.4.x-esr-scala2.11",
+                        "JobTag": "defaultTag",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "JdbcURL": "defaultJdbcUrl",
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "TmsType": "defaultTMSType",
+                        "PrimaryKey": "defaultKey",
+                        "Stage1": "defaultStage",
+                        "Target": "defaultTarget",
+                        "OldEventsPath": "defaultOldEventsPath",
+                        "NewEventsPath": "defaultNewEventsPath",
+                        "FirstSnapShotEvents": "defaultEvents",
+                        "FirstSnapShotoldEvents": "defaultEvents",
+                        "Schema": "defaultSchema",
+                        "BackFilingQuerypath": "defaultQuery",
+                        "StageDmlQuery": "defaultQuery",
+                        "DataframeKey": "defaultDFKey",
+                        "ShufflePartition": 200
+                    }
+                }
+            },
+            {
+                "name": "DELETE_L1_NETSUITE_OL_INBOUND",
+                "description": "",
+                "type": "Delete",
+                "dependsOn": [
+                    {
+                        "activity": "QC_NETSUITE_OL",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "1.00:00:00",
+                    "retry": 2,
+                    "retryIntervalInSeconds": 300,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "ADL_DIRECTORY",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "PATH": {
+                                "value": "@pipeline().parameters.L1_INBOUND_OL_PATH",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "enableLogging": false,
+                    "storeSettings": {
+                        "type": "AzureDataLakeStoreReadSettings",
+                        "recursive": true
+                    }
+                }
+            },
+            {
+                "name": "DELETE_L1_NETSUITE_OH_INBOUND",
+                "description": "",
+                "type": "Delete",
+                "dependsOn": [
+                    {
+                        "activity": "QC_NETSUITE_OH",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "1.00:00:00",
+                    "retry": 2,
+                    "retryIntervalInSeconds": 300,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "ADL_DIRECTORY",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "PATH": {
+                                "value": "@pipeline().parameters.L1_INBOUND_OH_PATH",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "enableLogging": false,
+                    "storeSettings": {
+                        "type": "AzureDataLakeStoreReadSettings",
+                        "recursive": true
+                    }
+                }
+            },
+            {
+                "name": "NETSUITE_OH_L2",
+                "type": "DatabricksSparkJar",
+                "dependsOn": [
+                    {
+                        "activity": "NETSUITE_OH_L1",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "mainClassName": "com.wsgc.bigdata.SampleBatchAnalytics",
+                    "parameters": [],
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.INGEST_ETL_JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": "GenericPassThroughBatchJob.NETSUITE_TRANSACTIONS_OH_L2",
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.OH_CONFIG",
+                            "type": "Expression"
+                        },
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MaxRatePerPartition": 0,
+                        "MinRatePerPartition": 1,
+                        "GracefulShutdown": "true",
+                        "ClientID": {
+                            "value": "@pipeline().parameters.CLIENT_ID",
+                            "type": "Expression"
+                        },
+                        "ClientKey": {
+                            "value": "@pipeline().parameters.CLIENT_KEY",
+                            "type": "Expression"
+                        },
+                        "ValutBaseUrl": {
+                            "value": "@pipeline().parameters.VAULT_BASE_URL",
+                            "type": "Expression"
+                        },
+                        "UserNameKey": {
+                            "value": "@pipeline().parameters.NETSUITE_USER_NAME_KEY",
+                            "type": "Expression"
+                        },
+                        "PasswordKey": {
+                            "value": "@pipeline().parameters.NETSUITE_PASSWORD_KEY",
+                            "type": "Expression"
+                        },
+                        "MinWorker": 4,
+                        "MaxWorker": 6,
+                        "BatchDuration": 3000,
+                        "TimeOut": 900000,
+                        "BroadCastTimeOut": {
+                            "value": "@pipeline().parameters.SQL_BROADCAST_TIMEOUT",
+                            "type": "Expression"
+                        },
+                        "ClusterVersion": "6.4.x-esr-scala2.11",
+                        "JobTag": "ADB_NETSUITE_OH_OL_INGEST",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "JdbcURL": "defaultJdbcUrl",
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "TmsType": "defaultTMSType",
+                        "PrimaryKey": "defaultKey",
+                        "Stage1": "defaultStage",
+                        "Target": "defaultTarget",
+                        "OldEventsPath": "defaultOldEventsPath",
+                        "NewEventsPath": "defaultNewEventsPath",
+                        "FirstSnapShotEvents": "defaultEvents",
+                        "FirstSnapShotoldEvents": "defaultEvents",
+                        "Schema": "defaultSchema",
+                        "BackFilingQuerypath": "defaultQuery",
+                        "StageDmlQuery": "defaultQuery",
+                        "DataframeKey": "defaultDFKey",
+                        "ShufflePartition": 200
+                    }
+                }
+            },
+            {
+                "name": "NETSUITE_OH_SF",
+                "type": "DatabricksSparkJar",
+                "dependsOn": [
+                    {
+                        "activity": "NETSUITE_OH_L2",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "mainClassName": "com.wsgc.bigdata.SampleBatchAnalytics",
+                    "parameters": [],
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.INGEST_ETL_JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": "GenericPassThroughBatchJob.NETSUITE_TRANSACTIONS_OH_SF",
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.OH_CONFIG",
+                            "type": "Expression"
+                        },
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MaxRatePerPartition": 0,
+                        "MinRatePerPartition": 1,
+                        "GracefulShutdown": "true",
+                        "ClientID": {
+                            "value": "@pipeline().parameters.CLIENT_ID",
+                            "type": "Expression"
+                        },
+                        "ClientKey": {
+                            "value": "@pipeline().parameters.CLIENT_KEY",
+                            "type": "Expression"
+                        },
+                        "ValutBaseUrl": {
+                            "value": "@pipeline().parameters.VAULT_BASE_URL",
+                            "type": "Expression"
+                        },
+                        "UserNameKey": {
+                            "value": "@pipeline().parameters.SNOWFLAKE_USER_NAME_KEY",
+                            "type": "Expression"
+                        },
+                        "PasswordKey": {
+                            "value": "@pipeline().parameters.SNOWFLAKE_PASSWORD_KEY",
+                            "type": "Expression"
+                        },
+                        "MinWorker": 2,
+                        "MaxWorker": 4,
+                        "BatchDuration": 3000,
+                        "TimeOut": 900000,
+                        "BroadCastTimeOut": {
+                            "value": "@pipeline().parameters.SQL_BROADCAST_TIMEOUT",
+                            "type": "Expression"
+                        },
+                        "ClusterVersion": "6.4.x-esr-scala2.11",
+                        "JobTag": "ADB_NETSUITE_OH_OL_INGEST",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "JdbcURL": "defaultJdbcUrl",
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "TmsType": "defaultTMSType",
+                        "PrimaryKey": "defaultKey",
+                        "Stage1": "defaultStage",
+                        "Target": "defaultTarget",
+                        "OldEventsPath": "defaultOldEventsPath",
+                        "NewEventsPath": "defaultNewEventsPath",
+                        "FirstSnapShotEvents": "defaultEvents",
+                        "FirstSnapShotoldEvents": "defaultEvents",
+                        "Schema": "defaultSchema",
+                        "BackFilingQuerypath": "defaultQuery",
+                        "StageDmlQuery": "defaultQuery",
+                        "DataframeKey": "defaultDFKey",
+                        "ShufflePartition": 200
+                    }
+                }
+            },
+            {
+                "name": "NETSUITE_OH_L1",
+                "type": "DatabricksSparkJar",
+                "dependsOn": [
+                    {
+                        "activity": "IF_PARALLEL_TAG_LOC",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "4.00:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "mainClassName": "com.wsgc.bigdata.SampleBatchAnalytics",
+                    "parameters": [],
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.INGEST_ETL_JAR"
+                        },
+                        {
+                            "jar": "@pipeline().parameters.ODBC_JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": "GenericPassThroughBatchJob.NETSUITE_TRANSACTIONS_OH_L1,GenericPassThroughBatchJob.NETSUITE_TRANSACTIONS_OH_L1_Archive",
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.OH_CONFIG",
+                            "type": "Expression"
+                        },
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MaxRatePerPartition": 0,
+                        "MinRatePerPartition": 1,
+                        "GracefulShutdown": "true",
+                        "ClientID": {
+                            "value": "@pipeline().parameters.CLIENT_ID",
+                            "type": "Expression"
+                        },
+                        "ClientKey": {
+                            "value": "@pipeline().parameters.CLIENT_KEY",
+                            "type": "Expression"
+                        },
+                        "ValutBaseUrl": {
+                            "value": "@pipeline().parameters.VAULT_BASE_URL",
+                            "type": "Expression"
+                        },
+                        "UserNameKey": {
+                            "value": "@pipeline().parameters.NETSUITE_USER_NAME_KEY",
+                            "type": "Expression"
+                        },
+                        "PasswordKey": {
+                            "value": "@pipeline().parameters.NETSUITE_PASSWORD_KEY",
+                            "type": "Expression"
+                        },
+                        "MinWorker": 4,
+                        "MaxWorker": 6,
+                        "BatchDuration": 3000,
+                        "TimeOut": 900000,
+                        "BroadCastTimeOut": {
+                            "value": "@pipeline().parameters.SQL_BROADCAST_TIMEOUT",
+                            "type": "Expression"
+                        },
+                        "ClusterVersion": "6.4.x-esr-scala2.11",
+                        "JobTag": "ADB_NETSUITE_OH_OL_INGEST",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "JdbcURL": {
+                            "value": "@pipeline().parameters.NETSUITE_JDBC_URL",
+                            "type": "Expression"
+                        },
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "TmsType": "defaultTMSType",
+                        "PrimaryKey": "defaultKey",
+                        "Stage1": "defaultStage",
+                        "Target": "defaultTarget",
+                        "OldEventsPath": "defaultOldEventsPath",
+                        "NewEventsPath": "defaultNewEventsPath",
+                        "FirstSnapShotEvents": "defaultEvents",
+                        "FirstSnapShotoldEvents": "defaultEvents",
+                        "Schema": "defaultSchema",
+                        "BackFilingQuerypath": "defaultQuery",
+                        "StageDmlQuery": "defaultQuery",
+                        "DataframeKey": "defaultDFKey",
+                        "ShufflePartition": 200
+                    }
+                }
+            },
+            {
+                "name": "NETSUITE_OL_L2",
+                "type": "DatabricksSparkJar",
+                "dependsOn": [
+                    {
+                        "activity": "NETSUITE_OH_L2",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    },
+                    {
+                        "activity": "NETSUITE_OL_L1",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "mainClassName": "com.wsgc.bigdata.SampleBatchAnalytics",
+                    "parameters": [],
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.INGEST_ETL_JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": "GenericPassThroughBatchJob.NETSUITE_TRANSACTIONS_OH_L2",
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.OL_CONFIG",
+                            "type": "Expression"
+                        },
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MaxRatePerPartition": 0,
+                        "MinRatePerPartition": 1,
+                        "GracefulShutdown": "true",
+                        "ClientID": {
+                            "value": "@pipeline().parameters.CLIENT_ID",
+                            "type": "Expression"
+                        },
+                        "ClientKey": {
+                            "value": "@pipeline().parameters.CLIENT_KEY",
+                            "type": "Expression"
+                        },
+                        "ValutBaseUrl": {
+                            "value": "@pipeline().parameters.VAULT_BASE_URL",
+                            "type": "Expression"
+                        },
+                        "UserNameKey": {
+                            "value": "@pipeline().parameters.NETSUITE_USER_NAME_KEY",
+                            "type": "Expression"
+                        },
+                        "PasswordKey": {
+                            "value": "@pipeline().parameters.NETSUITE_PASSWORD_KEY",
+                            "type": "Expression"
+                        },
+                        "MinWorker": 4,
+                        "MaxWorker": 6,
+                        "BatchDuration": 3000,
+                        "TimeOut": 900000,
+                        "BroadCastTimeOut": {
+                            "value": "@pipeline().parameters.SQL_BROADCAST_TIMEOUT",
+                            "type": "Expression"
+                        },
+                        "ClusterVersion": "6.4.x-esr-scala2.11",
+                        "JobTag": "ADB_NETSUITE_OH_OL_INGEST",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "JdbcURL": "defaultJdbcUrl",
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "TmsType": "defaultTMSType",
+                        "PrimaryKey": "defaultKey",
+                        "Stage1": "defaultStage",
+                        "Target": "defaultTarget",
+                        "OldEventsPath": "defaultOldEventsPath",
+                        "NewEventsPath": "defaultNewEventsPath",
+                        "FirstSnapShotEvents": "defaultEvents",
+                        "FirstSnapShotoldEvents": "defaultEvents",
+                        "Schema": "defaultSchema",
+                        "BackFilingQuerypath": "defaultQuery",
+                        "StageDmlQuery": "defaultQuery",
+                        "DataframeKey": "defaultDFKey",
+                        "ShufflePartition": 200
+                    }
+                }
+            },
+            {
+                "name": "NETSUITE_OL_SF",
+                "type": "DatabricksSparkJar",
+                "dependsOn": [
+                    {
+                        "activity": "NETSUITE_OL_L2",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "mainClassName": "com.wsgc.bigdata.SampleBatchAnalytics",
+                    "parameters": [],
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.INGEST_ETL_JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": "GenericPassThroughBatchJob.NETSUITE_TRANSACTIONS_OH_SF",
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.OL_CONFIG",
+                            "type": "Expression"
+                        },
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MaxRatePerPartition": 0,
+                        "MinRatePerPartition": 1,
+                        "GracefulShutdown": "true",
+                        "ClientID": {
+                            "value": "@pipeline().parameters.CLIENT_ID",
+                            "type": "Expression"
+                        },
+                        "ClientKey": {
+                            "value": "@pipeline().parameters.CLIENT_KEY",
+                            "type": "Expression"
+                        },
+                        "ValutBaseUrl": {
+                            "value": "@pipeline().parameters.VAULT_BASE_URL",
+                            "type": "Expression"
+                        },
+                        "UserNameKey": {
+                            "value": "@pipeline().parameters.SNOWFLAKE_USER_NAME_KEY",
+                            "type": "Expression"
+                        },
+                        "PasswordKey": {
+                            "value": "@pipeline().parameters.SNOWFLAKE_PASSWORD_KEY",
+                            "type": "Expression"
+                        },
+                        "MinWorker": 2,
+                        "MaxWorker": 4,
+                        "BatchDuration": 3000,
+                        "TimeOut": 900000,
+                        "BroadCastTimeOut": {
+                            "value": "@pipeline().parameters.SQL_BROADCAST_TIMEOUT",
+                            "type": "Expression"
+                        },
+                        "ClusterVersion": "6.4.x-esr-scala2.11",
+                        "JobTag": "ADB_NETSUITE_OH_OL_INGEST",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "JdbcURL": "defaultJdbcUrl",
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "TmsType": "defaultTMSType",
+                        "PrimaryKey": "defaultKey",
+                        "Stage1": "defaultStage",
+                        "Target": "defaultTarget",
+                        "OldEventsPath": "defaultOldEventsPath",
+                        "NewEventsPath": "defaultNewEventsPath",
+                        "FirstSnapShotEvents": "defaultEvents",
+                        "FirstSnapShotoldEvents": "defaultEvents",
+                        "Schema": "defaultSchema",
+                        "BackFilingQuerypath": "defaultQuery",
+                        "StageDmlQuery": "defaultQuery",
+                        "DataframeKey": "defaultDFKey",
+                        "ShufflePartition": 200
+                    }
+                }
+            },
+            {
+                "name": "NETSUITE_OL_L1",
+                "type": "DatabricksSparkJar",
+                "dependsOn": [
+                    {
+                        "activity": "IF_PARALLEL_TAG_LOC",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "4.00:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "mainClassName": "com.wsgc.bigdata.SampleBatchAnalytics",
+                    "parameters": [],
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.INGEST_ETL_JAR"
+                        },
+                        {
+                            "jar": "@pipeline().parameters.ODBC_JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": "GenericPassThroughBatchJob.NETSUITE_TRANSACTIONS_OH_L1,GenericPassThroughBatchJob.NETSUITE_TRANSACTION_LINES_OL_L1_Archive",
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.OL_CONFIG",
+                            "type": "Expression"
+                        },
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MaxRatePerPartition": 0,
+                        "MinRatePerPartition": 1,
+                        "GracefulShutdown": "true",
+                        "ClientID": {
+                            "value": "@pipeline().parameters.CLIENT_ID",
+                            "type": "Expression"
+                        },
+                        "ClientKey": {
+                            "value": "@pipeline().parameters.CLIENT_KEY",
+                            "type": "Expression"
+                        },
+                        "ValutBaseUrl": {
+                            "value": "@pipeline().parameters.VAULT_BASE_URL",
+                            "type": "Expression"
+                        },
+                        "UserNameKey": {
+                            "value": "@pipeline().parameters.NETSUITE_USER_NAME_KEY",
+                            "type": "Expression"
+                        },
+                        "PasswordKey": {
+                            "value": "@pipeline().parameters.NETSUITE_PASSWORD_KEY",
+                            "type": "Expression"
+                        },
+                        "MinWorker": 4,
+                        "MaxWorker": 6,
+                        "BatchDuration": 3000,
+                        "TimeOut": 900000,
+                        "BroadCastTimeOut": {
+                            "value": "@pipeline().parameters.SQL_BROADCAST_TIMEOUT",
+                            "type": "Expression"
+                        },
+                        "ClusterVersion": "6.4.x-esr-scala2.11",
+                        "JobTag": "ADB_NETSUITE_OH_OL_INGEST",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "JdbcURL": {
+                            "value": "@pipeline().parameters.NETSUITE_JDBC_URL",
+                            "type": "Expression"
+                        },
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "TmsType": "defaultTMSType",
+                        "PrimaryKey": "defaultKey",
+                        "Stage1": "defaultStage",
+                        "Target": "defaultTarget",
+                        "OldEventsPath": "defaultOldEventsPath",
+                        "NewEventsPath": "defaultNewEventsPath",
+                        "FirstSnapShotEvents": "defaultEvents",
+                        "FirstSnapShotoldEvents": "defaultEvents",
+                        "Schema": "defaultSchema",
+                        "BackFilingQuerypath": "defaultQuery",
+                        "StageDmlQuery": "defaultQuery",
+                        "DataframeKey": "defaultDFKey",
+                        "ShufflePartition": 200
+                    }
+                }
+            },
+            {
+                "name": "QC_NETSUITE_OH",
+                "type": "DatabricksNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "NETSUITE_OH_SF",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.04:00:00",
+                    "retry": 2,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "notebookPath": "/Shared/QC/Generic_CoreQC_Source_Target",
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.INGEST_ETL_JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": {
+                            "value": "@pipeline().parameters.INGEST_ETL_JAR",
+                            "type": "Expression"
+                        },
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.OH_QC_CONFIG",
+                            "type": "Expression"
+                        },
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MaxRatePerPartition": 0,
+                        "MinRatePerPartition": 1,
+                        "GracefulShutdown": "true",
+                        "ClientID": {
+                            "value": "@pipeline().parameters.CLIENT_ID",
+                            "type": "Expression"
+                        },
+                        "ClientKey": {
+                            "value": "@pipeline().parameters.CLIENT_KEY",
+                            "type": "Expression"
+                        },
+                        "ValutBaseUrl": {
+                            "value": "@pipeline().parameters.VAULT_BASE_URL",
+                            "type": "Expression"
+                        },
+                        "UserNameKey": {
+                            "value": "@pipeline().parameters.SNOWFLAKE_USER_NAME_KEY",
+                            "type": "Expression"
+                        },
+                        "PasswordKey": {
+                            "value": "@pipeline().parameters.SNOWFLAKE_PASSWORD_KEY",
+                            "type": "Expression"
+                        },
+                        "MinWorker": 1,
+                        "MaxWorker": 2,
+                        "BatchDuration": 3000,
+                        "TimeOut": 900000,
+                        "BroadCastTimeOut": 36000,
+                        "ClusterVersion": "6.4.x-esr-scala2.11",
+                        "JobTag": "defaultTag",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "JdbcURL": "defaultJdbcUrl",
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "TmsType": "defaultTMSType",
+                        "PrimaryKey": "defaultKey",
+                        "Stage1": "defaultStage",
+                        "Target": "defaultTarget",
+                        "OldEventsPath": "defaultOldEventsPath",
+                        "NewEventsPath": "defaultNewEventsPath",
+                        "FirstSnapShotEvents": "defaultEvents",
+                        "FirstSnapShotoldEvents": "defaultEvents",
+                        "Schema": "defaultSchema",
+                        "BackFilingQuerypath": "defaultQuery",
+                        "StageDmlQuery": "defaultQuery",
+                        "DataframeKey": "defaultDFKey",
+                        "ShufflePartition": 200
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "SQL_BROADCAST_TIMEOUT": {
+                "type": "string",
+                "defaultValue": "36000"
+            },
+            "INGEST_ETL_JAR": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/jars/89af27f8_dada_4f24_bf77_258621a542c6-big_analytics_generic_ingestion_Pythagoras.jar"
+            },
+            "ODBC_JAR": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/tables/jars/NQjc.jar"
+            },
+            "CLIENT_ID": {
+                "type": "string",
+                "defaultValue": "a775e1b6-796d-49aa-b4ae-c478d7892f38"
+            },
+            "CLIENT_KEY": {
+                "type": "string",
+                "defaultValue": "6bMa+_SX@XuG?MM3fzxL5o7Q_KW1=*jt"
+            },
+            "VAULT_BASE_URL": {
+                "type": "string",
+                "defaultValue": "https://prod-edap-key-vault.vault.azure.net"
+            },
+            "NETSUITE_USER_NAME_KEY": {
+                "type": "string",
+                "defaultValue": "Net-Suite-UserKey"
+            },
+            "NETSUITE_PASSWORD_KEY": {
+                "type": "string",
+                "defaultValue": "Net-Suite-PassKey"
+            },
+            "NETSUITE_JDBC_URL": {
+                "type": "string",
+                "defaultValue": "jdbc:ns://3572911.connect.api.netsuite.com:1708;ServerDataSource=NetSuite.com; Encrypted=1; NegotiateSSLClose=false; CustomProperties=(AccountID=3572911;RoleID=3)"
+            },
+            "SNOWFLAKE_USER_NAME_KEY": {
+                "type": "string",
+                "defaultValue": "ADF-SnowFlake-Userkey"
+            },
+            "SNOWFLAKE_PASSWORD_KEY": {
+                "type": "string",
+                "defaultValue": "ADF-SnowFlake-PassKey"
+            },
+            "TAG_FILE": {
+                "type": "string",
+                "defaultValue": "TAG_FILE"
+            },
+            "TAG_DIR_SOURCE": {
+                "type": "string",
+                "defaultValue": "/data/governed/audit/generic_tag/"
+            },
+            "TAG_DIR_ORDER": {
+                "type": "string",
+                "defaultValue": "/data/governed/audit/order_upsert/tag/"
+            },
+            "SKIP_LOG_DIR_ORDER": {
+                "type": "string",
+                "defaultValue": "/data/governed/audit/order_upsert/log/"
+            },
+            "TAG_WAIT_INTERVAL": {
+                "type": "int",
+                "defaultValue": 40
+            },
+            "L1_INBOUND_OH_PATH": {
+                "type": "string",
+                "defaultValue": "dbfs:/mnt/data/governed/l1/global_netsuite/order/table/inbound/header/"
+            },
+            "L1_INBOUND_OL_PATH": {
+                "type": "string",
+                "defaultValue": "dbfs:/mnt/data/governed/l1/global_netsuite/order/table/inbound/line/"
+            },
+            "Subscription": {
+                "type": "string",
+                "defaultValue": "31f3fdf6-27b7-4cfb-904d-bf1c5b8c1371"
+            },
+            "ResourceGroups": {
+                "type": "string",
+                "defaultValue": "marketing-edap-prod-rg"
+            },
+            "DataFactory": {
+                "type": "string",
+                "defaultValue": "prod-edap-df"
+            },
+            "OH_CONFIG": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/tables/config/global_netsuite/order/header/netsuite_transactions_oh_config.json"
+            },
+            "OL_CONFIG": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/tables/config/global_netsuite/order/line/netsuite_transaction_lines_ol_config.json"
+            },
+            "OH_QC_CONFIG": {
+                "type": "string",
+                "defaultValue": "/dbfs/FileStore/tables/config/global_netsuite/order/header/netsuite_transactions_oh_dq_check.json"
+            },
+            "OL_QC_CONFIG": {
+                "type": "string",
+                "defaultValue": "/dbfs/FileStore/tables/config/global_netsuite/order/line/netsuite_transaction_lines_ol_dq_check.json.json"
+            }
+        },
+        "variables": {
+            "lower_time_bound": {
+                "type": "String",
+                "defaultValue": "0"
+            }
+        },
+        "folder": {
+            "name": "GLOBAL_NETSUITE"
+        },
+        "annotations": []
+    },
+    "type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,46 @@
+{
+    "parallelism":1,
+    "onJobFailure":"Fail",
+    "onEmptyDF":"Fail",
+    "ignoreInvalidRows":true,
+    "cleanColumnNames":true,
+    "jobs":[
+       {
+          "name":"GenericPassThroughBatchJob.GLOBAL_PO_LINK_INVOICE_SF",
+          "description":" GLOBAL_PO_LINK table for Snowflake",
+          "ignoreInvalidRows":true,
+          "cleanColumnNames":true,
+          "deltaInputs":[
+             {
+                "dataFrameName":"GLOBAL_PO_INVOICE_LINK_SF",
+                "dbName":"L2_STAGE",
+                "tableName":"GLOBAL_PO_INVOICE_LINK_STG"
+             }
+          ],
+          "snowflakeOutputs":[
+             {
+                "dataFrameName":"GLOBAL_PO_INVOICE_LINK_SF",
+                "sfURL":"williamssonoma.east-us-2.azure.snowflakecomputing.com",
+                "sfAccount":"williamssonoma",
+                "keyVaultAuth": {
+                   "keyVaultParams":{
+                      "clientId":"${spark.wsgc.clientId}",
+                      "clientKey":"${spark.wsgc.clientkey}",
+                      "vaultBaseUrl":"${spark.wsgc.vaultbaseurl}",
+                      "usernameKey":"${spark.wsgc.usernamekey}",
+                      "passwordKey":"${spark.wsgc.passwordkey}"
+                   }
+                },
+                "sfWarehouse":"PROD_EDAP_ANALYTICS_WH",
+                "sfDatabase":"PROD_EDAP_STAGE_DB",
+                "sfSchema":"PROD_EDAP_STAGE_TABLES",
+                "tableName":"GLOBAL_PO_INVOICE_LINK_STG",
+                "queryPaths":[
+                    "/dbfs/FileStore/tables/sql/netsuite_administrator/transactions_links_invoice/global_po_invoice_link_merge_into_sf.sql"
+                 ],
+                "saveMode":"Overwrite"
+             }
+          ]
+       }
+    ]
+ }

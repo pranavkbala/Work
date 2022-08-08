@@ -1,0 +1,35 @@
+{
+  "parallelism":1,
+  "onJobFailure":"Fail",
+  "onEmptyDF":"Fail",
+  "ignoreInvalidRows":true,
+  "cleanColumnNames":true,
+  "jobs":[
+    {
+      "name":"GenericPassThroughBatchJob.FRANCHISE_RELIANCE_STORE_HIERARCHY_STAGE_L2",
+      "description":"Ingest data from Franchise Store_Hierarch-L1 to Store_Hierarchy-L2",
+      "ignoreInvalidRows":true,
+      "cleanColumnNames":true,
+      "fileInputs":[
+        {
+          "dataFrameName":"FRANCHISE_RELIANCE_STORE_HIERARCHY_STAGE",
+          "format":"PARQUET",
+          "path":"dbfs:/mnt/data/governed/l1/global_franchise/reliance/location/file/inbound/store_hierarchy/"
+        }
+      ],
+      "deltaOutputs":[
+        {
+          "dataFrameName":"FRANCHISE_RELIANCE_STORE_HIERARCHY_STAGE",
+          "format":"DELTA",
+          "dbName":"L2_STAGE",
+		      "partitions": 1,
+          "tableName":"FRANCHISE_RELIANCE_STORE_HIERARCHY_STAGE",
+          "options": {
+          "path": "dbfs:/mnt/data/governed/l2/stage/global_franchise/reliance/location/store_hierarchy/franchise_reliance_store_hierarchy_stage"
+        },
+          "saveMode":"Overwrite"
+        }
+      ]
+    }
+  ]
+}

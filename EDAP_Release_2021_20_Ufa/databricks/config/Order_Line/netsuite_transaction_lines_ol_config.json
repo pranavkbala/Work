@@ -1,0 +1,132 @@
+{
+    "parallelism": 4,
+    "onJobFailure": "Fail",
+    "onEmptyDF": "Fail",
+    "ignoreInvalidRows": true,
+    "cleanColumnNames": true,
+    "jobs": [
+        {
+            "name": "GenericPassThroughBatchJob.NETSUITE_TRANSACTION_LINES_OL_L1",
+            "description": "Extract and load Order data from Administrator.Transaction_lines table",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "jdbcInputs": [
+                {
+                    "dataFrameName": "NETSUITE_OL_L1",
+                    "driver": "com.netsuite.jdbc.openaccess.OpenAccessDriver",
+                    "flavor": "oracle",
+                    "url": "${spark.wsgc.jdbcUrl}",
+                    "keyVaultAuth": {
+                        "keyVaultParams": {
+                            "clientId": "${spark.wsgc.clientId}",
+                            "clientKey": "${spark.wsgc.clientkey}",
+                            "usernameKey": "${spark.wsgc.usernamekey}",
+                            "passwordKey": "${spark.wsgc.passwordkey}",
+                            "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}"
+                        }
+                    },
+                    "incrementalParams": {
+                        "checkpointTablePath": "dbfs:/mnt/data/governed/l1/audit/log/checkpoint_log/",
+                        "extractId": "NETSUITE_TRANSACTION_LINES_OL",
+                        "incrementalSql": "(select trs_lines.TRANSACTION_LINE_ID, trs_lines.TRANSACTION_ID, trs_lines.SUBSIDIARY_ID, trs_lines.ITEM_ID, trs_lines.ITEM_COUNT, trs_lines.DEPARTMENT_ID, trs_lines.FULFILLMENT_STATUS_ID, trs_lines.PACK_GROUP, trs_lines.QUANTITY_RECEIVED_IN_SHIPMENT, trs_lines.AMOUNT, trs_lines.DISCOUNT_AMOUNT, trs_lines.DATE_CLOSED, trs_lines.DATE_LAST_MODIFIED_GMT, trs.TRANDATE from Administrator.TRANSACTION_lines trs_lines join Administrator.TRANSACTIONS trs on trs_lines.Transaction_id = trs.Transaction_id where trs.TRANSACTION_TYPE in ('Sales Order','Invoice') and trs_lines.DATE_LAST_MODIFIED_GMT > TO_DATE('%%{CHECKPOINT_VALUE_1}','DD-MM-YYYY HH24:MI:SS') AND trs_lines.DATE_LAST_MODIFIED_GMT <= TO_DATE('%%{maxCheckPointValue1}','DD-MM-YYYY HH24:MI:SS'))a1",
+                        "maxCheckPoint1": "select TO_CHAR(max(DATE_LAST_MODIFIED_GMT),'DD-MM-YYYY HH24:MI:SS') from Administrator.TRANSACTION_LINES where DATE_LAST_MODIFIED_GMT>= TO_DATE('%%{CHECKPOINT_VALUE_1}','DD-MM-YYYY HH24:MI:SS')"
+                    }
+                }
+            ],
+            "fileOutputs": [
+                {
+                    "dataFrameName": "NETSUITE_OL_L1",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/global_netsuite/order/table/inbound/line/",
+                    "saveMode": "Append"
+                }
+            ]
+        },
+        {
+            "name": "GenericPassThroughBatchJob.NETSUITE_TRANSACTION_LINES_OL_L1_Archive",
+            "description": "To ingest data from L1 Inbound to L1 Archive",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "fileInputs": [
+                {
+                    "dataFrameName": "NETSUITE_OL_L1",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/global_netsuite/order/table/inbound/line/"
+                }
+            ],
+            "fileOutputs": [
+                {
+                    "dataFrameName": "NETSUITE_OL_L1",
+                    "format": "DELTA",
+                    "path": "dbfs:/mnt/data/governed/l1/global_netsuite/order/table/inbound_archive/line/",
+                    "saveMode": "Append"
+                }
+            ]
+        },
+        {
+            "name": "GenericPassThroughBatchJob.NETSUITE_TRANSACTION_LINES_OL_L2",
+            "description": "L2 ORDER LINE ",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "fileInputs": [
+                {
+                    "dataFrameName": "NETSUITE_OL_L2",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/global_netsuite/order/table/inbound/line/"
+                }
+            ],
+            "deltaOutputs": [
+                {
+                    "OverwriteSchema": "true",
+                    "dataFrameName": "NETSUITE_OL_L2",
+                    "dbName": "L2_STAGE",
+                    "tableName": "ORDER_LINE_STG_TEMP",
+                    "options": {
+                        "path": "dbfs:/mnt/data/governed/l2/stage/order/line/order_line_stg_temp"
+                    },
+                    "queryPaths": [
+                        "/dbfs/FileStore/tables/sql/global_netsuite/order/line/netsuite_transaction_lines_ol_transformation.sql"
+                    ],
+                    "saveMode": "Overwrite"
+                }
+            ]
+        },
+        {
+            "name": "GenericPassThroughBatchJob.NETSUITE_TRANSACTION_LINES_OL_SF",
+            "description": "Pushing data from NDP into Snowflake",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "deltaInputs": [
+                {
+                    "dataFrameName": "NETSUITE_OL_SF",
+                    "dbName": "L2_STAGE",
+                    "tableName": "NETSUITE_OL_STG"
+                }
+            ],
+            "snowflakeOutputs": [
+                {
+                    "dataFrameName": "NETSUITE_OL_SF",
+                    "sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+                    "sfAccount": "williamssonoma",
+                    "keyVaultAuth": {
+                        "keyVaultParams": {
+                            "clientId": "${spark.wsgc.clientId}",
+                            "clientKey": "${spark.wsgc.clientkey}",
+                            "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+                            "usernameKey": "${spark.wsgc.usernamekey}",
+                            "passwordKey": "${spark.wsgc.passwordkey}"
+                        }
+                    },
+                    "sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+                    "sfDatabase": "PROD_EDAP_STAGE_DB",
+                    "sfSchema": "PROD_EDAP_STAGE_TABLES",
+                    "tableName": "NETSUITE_OL_SF_STG",
+                    "queryPaths": [
+                        "/dbfs/FileStore/tables/sql/global_netsuite/order/line/netsuite_transaction_lines_ol_merge_into_sf.sql"
+                    ],
+                    "saveMode": "Overwrite"
+                }
+            ]
+        }
+    ]
+}

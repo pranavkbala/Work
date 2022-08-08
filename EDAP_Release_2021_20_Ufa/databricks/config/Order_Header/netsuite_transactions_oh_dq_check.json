@@ -1,0 +1,64 @@
+{
+   "qcId": "ORDER_HEADER",
+   "description": "ORDER_HEADER QC check",
+   "appQueries": [
+      
+      {
+         "queryId": 1,
+         "description": "L2-ORDER_HEADER Null Check",
+         "source": {
+            "query": "select cast(count(*) as double) from L2_ANALYTICS_TABLES.ORDER_HEADER where SOURCE_SYSTEM = 'GLOBAL_NETSUITE' and ORDER_HEADER_ID IS NULL"
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      },
+      {
+         "queryId": 2,
+         "description": "L2-ORDER_HEADER Duplicate Key Check",
+         "source": {
+            "query": "select cast(count(*) as double) from (SELECT ORDER_HEADER_KEY FROM L2_ANALYTICS_TABLES.ORDER_HEADER WHERE SOURCE_SYSTEM = 'GLOBAL_NETSUITE' and LAST_EFFECTIVE_TS = '9999-12-31T23:59:59.000+0000' GROUP BY ORDER_HEADER_KEY HAVING COUNT(*) > 1)"
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      },
+      {
+         "queryId": 3,
+         "description": "ORDER_HEADER  Duplicate ID Check",
+         "source": {
+            "query": "select cast(count(*) as double) from (SELECT ORDER_HEADER_ID FROM L2_ANALYTICS_TABLES.ORDER_HEADER  WHERE SOURCE_SYSTEM = 'GLOBAL_NETSUITE' and LAST_EFFECTIVE_TS = '9999-12-31T23:59:59.000+0000' GROUP BY ORDER_HEADER_ID HAVING COUNT(*) > 1)"
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      },
+      {
+         "queryId": 4,
+         "description": "ORDER_HEADER Snowflake-Delta Count Check",
+         "source": {
+            "system": "snowflake",
+            "query": "select cast(count(*) as double) from  PROD_EDAP_ANALYTICS_DB.PROD_EDAP_ANALYTICS_TABLES.ORDER_HEADER WHERE SOURCE_SYSTEM = 'GLOBAL_NETSUITE'",
+            "keyVaultAuth": {
+               "keyVaultParams": {
+                  "clientId": "${spark.wsgc.clientId}",
+                  "clientKey": "${spark.wsgc.clientkey}",
+                  "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+                  "usernameKey": "${spark.wsgc.usernamekey}",
+                  "passwordKey": "${spark.wsgc.passwordkey}"
+               }
+            },
+            "snowflake": {
+               "sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+               "sfAccount": "williamssonoma",
+               "sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+               "sfDatabase": "PROD_EDAP_ANALYTICS_DB",
+               "sfSchema": "PROD_EDAP_ANALYTICS_TABLES"
+            }
+         },
+         "target": {
+            "query": "select cast(count(*) as double) from L2_ANALYTICS_TABLES.ORDER_HEADER WHERE SOURCE_SYSTEM = 'GLOBAL_NETSUITE'"
+         }
+      }
+   ]
+}

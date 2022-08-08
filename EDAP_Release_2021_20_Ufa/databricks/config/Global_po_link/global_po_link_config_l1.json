@@ -1,0 +1,67 @@
+{
+    "parallelism": 4,
+    "onJobFailure": "Fail",
+    "onEmptyDF": "Fail",
+    "ignoreInvalidRows": true,
+    "cleanColumnNames": true,
+    "jobs": [
+        {
+        "name": "GenericPassThroughBatchJob.GLOBAL_PO_LINK_L1",
+        "description": "Extract GLOBAL_PO_LINK data from Administrator.TRANSACTION_LINKS table",
+        "ignoreInvalidRows": true,
+        "cleanColumnNames": true,
+        "jdbcInputs": [
+            {
+            "dataFrameName": "GLOBAL_PO_LINK_L1",
+            "driver": "com.netsuite.jdbc.openaccess.OpenAccessDriver",
+            "flavor": "oracle",
+            "url": "${spark.wsgc.jdbcUrl}",
+            "keyVaultAuth": {
+                "keyVaultParams": {
+                    "clientId": "${spark.wsgc.clientId}",
+                    "clientKey": "${spark.wsgc.clientkey}",
+                    "usernameKey": "${spark.wsgc.usernamekey}",
+                    "passwordKey": "${spark.wsgc.passwordkey}",
+                    "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}"
+                }
+            },
+            "incrementalParams": {
+                "checkpointTablePath": "dbfs:/mnt/data/governed/l1/audit/log/checkpoint_log/",
+                "extractId": "GLOBAL_PO_LINK",
+                "incrementalSql": "(SELECT  /*+ PARALLEL(8) */  TL.AMOUNT_FOREIGN_LINKED, TL.AMOUNT_LINKED, TL.APPLIED_DATE_POSTED, TL.APPLIED_TRANSACTION_ID,TL.APPLIED_TRANSACTION_LINE_ID, TL.DATE_LAST_MODIFIED, TL.DISCOUNT, TL.INVENTORY_NUMBER, TL.LINK_TYPE, TL.LINK_TYPE_CODE, TL.ORIGINAL_DATE_POSTED, TL.ORIGINAL_TRANSACTION_ID, TL.ORIGINAL_TRANSACTION_LINE_ID, TL.QUANTITY_LINKED from Administrator.TRANSACTION_LINKS TL join Administrator.Transactions T on TL.ORIGINAL_TRANSACTION_ID = T.TRANSACTION_ID where T.TRANSACTION_TYPE  in ('Purchase Order', 'Bill', 'Item Receipt') and TL.DATE_LAST_MODIFIED > TO_DATE('%%{CHECKPOINT_VALUE_1}','DD-MM-YYYY HH24:MI:SS') AND DATE_LAST_MODIFIED <= TO_DATE('%%{maxCheckPointValue1}','DD-MM-YYYY HH24:MI:SS')) a1",
+                "maxCheckPoint1": "select TO_CHAR(max(DATE_LAST_MODIFIED),'DD-MM-YYYY HH24:MI:SS') from Administrator.TRANSACTION_LINKS where DATE_LAST_MODIFIED >= TO_DATE('%%{CHECKPOINT_VALUE_1}','DD-MM-YYYY HH24:MI:SS')"
+            }
+        }
+    ],
+        "fileOutputs": [
+            {
+            "dataFrameName": "GLOBAL_PO_LINK_L1",
+            "format": "PARQUET",
+            "path": "dbfs:/mnt/data/governed/l1/global_netsuite/location/table/inbound/global_po_link/",
+            "saveMode": "Overwrite"
+           }
+       ]
+    }, 
+         {
+            "name": "GenericPassThroughBatchJob.GLOBAL_PO_LINK_L1_Archive",
+            "description": "To ingest data from L1 Inbound to L1 Archive",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "fileInputs": [
+                {
+                    "dataFrameName": "GLOBAL_PO_LINK_L1_INBOUND",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/global_netsuite/location/table/inbound/global_po_link/"
+                }
+            ],
+            "fileOutputs": [
+                {
+                    "dataFrameName": "GLOBAL_PO_LINK_L1_INBOUND",
+                    "format": "DELTA",
+                    "path": "dbfs:/mnt/data/governed/l1/global_netsuite/location/table/inbound_archive/global_po_link/",
+                    "saveMode": "Append"
+                }
+            ]
+        }
+  ]
+}
