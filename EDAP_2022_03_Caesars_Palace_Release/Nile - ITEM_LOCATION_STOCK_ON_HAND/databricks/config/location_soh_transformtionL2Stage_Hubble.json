@@ -1,0 +1,89 @@
+{
+	"transformations": [{
+		"transformType": "mapping",
+		"columnMapping": [
+
+			{
+				"targetCol": "SOH_UPDATE_DATETIME"
+			},
+			{
+				"sourceCol": "CHANNEL_ID",
+				"targetCol": "CHANNEL_CD"
+			},
+						{
+				"sourceCol": "CHANNEL_TYPE",
+				"targetCol": "CHANNEL_TYPE_CD"
+			},
+			{
+				"sourceCol": "CHANNEL_NAME",
+				"targetCol": "CHANNEL_DESC"
+			},			
+			{
+				"sourceCol": "ITEM",
+				"targetCol": "ITEM_ID"
+			},
+			{
+				"sourceCol": "LOC",
+				"targetCol": "LOCATION_ID"
+
+			},
+			{
+				"sourceCol": "LOC_TYPE",
+				"targetCol": "LOCATION_TYPE_CD"
+			},
+
+			{
+				"sourceCol": "LAST_UPDATE_DATETIME",
+				"targetCol": "FIRST_EFFECTIVE_TS"
+
+			},
+			{
+				"sourceCol": "STOCK_ON_HAND",
+				"targetCol": "STOCK_ON_HAND_QTY"
+
+			},
+			{
+				"sourceCol": "UNIT_COST",
+				"targetCol": "UNIT_COST_AMT"
+
+
+			},
+			{
+				"sourceCol": "AV_COST",
+				"targetCol": "AVG_COST_AMT"
+
+			},
+			{
+				"sourceCol": "TSF_EXPECTED_QTY",
+				"targetCol": "TRANSFERRED_EXPECTED_QTY"
+
+			},
+			{
+				"sourceCol": "WSI_ST_TO_ST_RESV_QTY",
+				"targetCol": "WSI_RESERVED_QTY"
+
+			},
+			{
+				"sourceCol": "CUSTOMER_RESV",
+				"targetCol": "CUSTOMER_RESERVE_QTY"
+
+			},
+			{
+				"sourceCol": "IN_TRANSIT_QTY",
+				"targetCol": "IN_TRANSIT_QTY"
+
+			},
+			{
+				"sourceCol": "PACK_COMP_INTRAN",
+				"targetCol": "PACK_COMPONENT_IN_TRANSIT_QTY"
+
+			},
+			{
+				"sourceCol": "PACK_COMP_SOH",
+				"targetCol": "PACK_COMPONENT_SOH_QTY"
+
+			}
+
+		]
+	}]
+}

@@ -1,0 +1,80 @@
+{
+	"parallelism": 1,
+	"onJobFailure": "Fail",
+	"onEmptyDF": "Fail",
+	"ignoreInvalidRows": true,
+	"cleanColumnNames": true,
+	"jobs": [
+		{
+			"name": "GenericPassThroughBatchJob.RMS_ITEMLOCSOH_L1",
+			"description": "RMS-Class feed from Oracle-RMS to ADL-L1 and L1-Archive",
+			"ignoreInvalidRows": true,
+			"cleanColumnNames": true,
+			"jdbcInputs": [
+				{
+					"dataFrameName":"SOHDF",
+					"driver":"oracle.jdbc.driver.OracleDriver",
+					"flavor":"oracle",
+					"url":"jdbc:oracle:thin:@RMSDBPRDRK2P.wsgc.com:1521/rmsrep",
+					"keyVaultAuth":{
+						"keyVaultParams":{
+							"clientId":"${spark.wsgc.clientId}",
+							"clientKey":"${spark.wsgc.clientkey}",
+							"vaultBaseUrl":"${spark.wsgc.vaultbaseurl}",
+							"usernameKey":"${spark.wsgc.usernamekey}",
+							"passwordKey":"${spark.wsgc.passwordkey}"
+						}
+					},
+					"table": "(with locations as (SELECT WH.WH AS LOCATION_ID, CH.CHANNEL_ID,CHANNEL_NAME,CHANNEL_TYPE from RMS_OWNER.WH JOIN RMS_OWNER.CHANNELS CH ON WH.CHANNEL_ID = CH.CHANNEL_ID UNION SELECT ST.STORE AS LOCATION_ID, CH.CHANNEL_ID,CHANNEL_NAME,CHANNEL_TYPE from RMS_OWNER.STORE ST JOIN RMS_OWNER.CHANNELS CH ON ST.CHANNEL_ID = CH.CHANNEL_ID ) select distinct ILS.ITEM, ILS.LOC, ILS.LOC_TYPE, CAST(ILS.SOH_UPDATE_DATETIME AS TIMESTAMP) AS SOH_UPDATE_DATETIME, ILS.STOCK_ON_HAND, ILS.UNIT_COST, ILS.AV_COST, CAST(ILS.LAST_UPDATE_DATETIME AS TIMESTAMP) AS LAST_UPDATE_DATETIME, ILS.TSF_EXPECTED_QTY, ILS.WSI_ST_TO_ST_RESV_QTY, ILS.CUSTOMER_RESV, ILS.IN_TRANSIT_QTY, ILS.PACK_COMP_INTRAN, ILS.PACK_COMP_SOH, t1.CHANNEL_ID, t1.CHANNEL_NAME, t1.CHANNEL_TYPE FROM RMS_OWNER.ITEM_LOC_SOH ILS JOIN RMS_OWNER.IF_TRAN_DATA IFT ON ILS.LOC = CASE WHEN IFT.STORE <> -1 THEN IFT.STORE WHEN IFT.WH <> -1 THEN IFT.WH END AND IFT.ITEM = ILS.ITEM left outer join locations t1 on t1.location_id = ils.loc )"
+				}],
+			"fileOutputs": [{
+				"dataFrameName": "SOHDF",
+				"format": "PARQUET",
+				"path": "dbfs:/mnt/data/governed/l1/rms/inventory/inbound/table/item_loc_soh/",
+				"saveMode": "Overwrite",
+				"partitionStrategy": {
+					"strategyType": "date",
+					"strategySubType": "path"
+				}
+			},
+				{
+					"dataFrameName": "SOHDF",
+					"format": "DELTA",
+					"path": "dbfs:/mnt/data/governed/l1/rms/inventory/inbound_archive/table/item_loc_soh/",
+					"saveMode": "Append",
+					"partitionStrategy": {
+						"strategyType": "date"
+					},
+					"partitionFields": [
+						"date"
+					]
+				}
+			]
+		},
+		{
+			"name": "GenericPassThroughBatchJob.L1_TEMLOCSOH_L2",
+			"description": "Ingest data from RMS SALES L1 to L2 INVOICE DELTA table",
+			"ignoreInvalidRows": true,
+			"cleanColumnNames": true,
+			"fileInputs": [{
+				"dataFrameName": "ITEM_LOC_SOH_STAGEDF",
+				"format": "PARQUET",
+				"path": "dbfs:/mnt/data/governed/l1/rms/inventory/inbound/table/item_loc_soh/"
+			}],
+			"transformDataInputs": [{
+				"dataFrameName": "ITEM_LOC_SOH_STAGEDF",
+				"transformationsPath": "/dbfs/FileStore/tables/config/soh/location_soh_transformtionL2Stage_Hubble.json"
+			}],
+			"deltaOutputs": [{
+				"dataFrameName": "ITEM_LOC_SOH_STAGEDF",
+				"format": "DELTA",
+				"dbName": "L2_STAGE",
+				"tableName": "ITEM_LOCATION_STOCK_ON_HAND_STAGE",
+				"queryPaths": [
+					"/dbfs/FileStore/tables/sql/soh/item_location_soh_queries_Hubble.sql"
+				],
+				"saveMode": "Overwrite"
+			}]
+		}
+	]
+}
