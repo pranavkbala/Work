@@ -1,0 +1,368 @@
+{
+    "name": "RMS_WS_ITEM_SUPPLIER_BARCODE_INGEST",
+    "properties": {
+        "activities": [
+            {
+                "name": "WS_ITEM_SUPPLIER_BARCODE_L1",
+                "description": "WS_ITEM_SUPPLIER_BARCODE_L1 data ingestion from RMS to L1",
+                "type": "DatabricksSparkJar",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.07:00:00",
+                    "retry": 2,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "mainClassName": "com.wsgc.bigdata.SampleBatchAnalytics",
+                    "parameters": [],
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.INGEST_ETL_JAR"
+                        },
+                        {
+                            "jar": "@pipeline().parameters.ODBC_JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": "GenericPassThroughBatchJob.RMS_WS_ITEM_SUPPLIER_BARCODE_L1",
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.CONFIG",
+                            "type": "Expression"
+                        },
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MaxRatePerPartition": 0,
+                        "MinRatePerPartition": 1,
+                        "GracefulShutdown": "true",
+                        "ClientID": "{{secrets/kv-scope/VAULT-CLIENT-ID}}",
+                        "ClientKey": "{{secrets/kv-scope/VAULT-CLIENT-KEY}}",
+                        "ValutBaseUrl": "@pipeline().globalParameters.VAULT_BASE_URL",
+                        "UserNameKey": {
+                            "value": "@pipeline().parameters.RMS_USER_NAME_KEY",
+                            "type": "Expression"
+                        },
+                        "PasswordKey": {
+                            "value": "@pipeline().parameters.RMS_PASSWORD_KEY",
+                            "type": "Expression"
+                        },
+                        "MinWorker": 1,
+                        "MaxWorker": 2,
+                        "BatchDuration": 3000,
+                        "TimeOut": 900000,
+                        "BroadCastTimeOut": 300,
+                        "ClusterVersion": "6.4.x-scala2.11",
+                        "JobTag": {
+                            "value": "@pipeline().parameters.JOB_TAG",
+                            "type": "Expression"
+                        },
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "JdbcURL": {
+                            "value": "@pipeline().parameters.RMS_JDBC_URL",
+                            "type": "Expression"
+                        },
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "TmsType": "defaultTMSType",
+                        "PrimaryKey": "defaultKey",
+                        "Stage1": "defaultStage",
+                        "Target": "defaultTarget",
+                        "OldEventsPath": "defaultOldEventsPath",
+                        "NewEventsPath": "defaultNewEventsPath",
+                        "FirstSnapShotEvents": "defaultEvents",
+                        "FirstSnapShotoldEvents": "defaultEvents",
+                        "Schema": "defaultSchema",
+                        "BackFilingQuerypath": "defaultQuery",
+                        "StageDmlQuery": "defaultQuery",
+                        "DataframeKey": "defaultDFKey",
+                        "ShufflePartition": 200
+                    }
+                }
+            },
+            {
+                "name": "WS_ITEM_SUPPLIER_BARCODE_SF_FINAL",
+                "type": "Lookup",
+                "dependsOn": [
+                    {
+                        "activity": "WS_ITEM_SUPPLIER_BARCODE_L1",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.05:00:00",
+                    "retry": 2,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "source": {
+                        "type": "SnowflakeSource",
+                        "query": {
+                            "value": "@concat('CALL ',\r\n     pipeline().parameters.ENVIRONMENT,\r\n     '_EDAP_L1_DB.',\r\n     pipeline().parameters.ENVIRONMENT, \r\n      '_EDAP_L1_TABLES.GENERIC_ETL_PROCEDURE_PID(''', \r\n     pipeline().parameters.ENVIRONMENT,\r\n    ''', ''', \r\n    pipeline().DataFactory,\r\n    ''', ''', \r\n    pipeline().Pipeline,\r\n    ''', ''', \r\n    pipeline().RunId,\r\n    ''', ''',\r\n    pipeline().parameters.SID, \r\n    ''', ''',\r\n    pipeline().parameters.EID, \r\n    ''' , ''', \r\n    pipeline().parameters.PARAM1,\r\n    ''', ''', \r\n    pipeline().parameters.PARAM2,\r\n    ''' , ''',\r\n    pipeline().parameters.PID,\r\n    '''\r\n    )')",
+                            "type": "Expression"
+                        },
+                        "exportSettings": {
+                            "type": "SnowflakeExportCopyCommand"
+                        }
+                    },
+                    "dataset": {
+                        "referenceName": "SNOWFLAKE_QUERY",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "SCHEMA": "default",
+                            "TABLENAME": "default"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "DQ_CHECK",
+                "type": "DatabricksNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "WS_ITEM_SUPPLIER_BARCODE_SF_FINAL",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.03:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "notebookPath": "/Shared/QC/Generic_CoreQC_Source_Target",
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.INGEST_ETL_JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": {
+                            "value": "@pipeline().parameters.INGEST_ETL_JAR",
+                            "type": "Expression"
+                        },
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.QC_CONFIG",
+                            "type": "Expression"
+                        },
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MaxRatePerPartition": 0,
+                        "MinRatePerPartition": 1,
+                        "GracefulShutdown": "true",
+                        "ClientID": {
+                            "value": "@pipeline().parameters.CLIENT_ID",
+                            "type": "Expression"
+                        },
+                        "ClientKey": {
+                            "value": "@pipeline().parameters.CLIENT_KEY",
+                            "type": "Expression"
+                        },
+                        "ValutBaseUrl": {
+                            "value": "@pipeline().parameters.VAULT_BASE_URL",
+                            "type": "Expression"
+                        },
+                        "UserNameKey": {
+                            "value": "@pipeline().parameters.USER_NAME_SNOWFLAKE",
+                            "type": "Expression"
+                        },
+                        "PasswordKey": {
+                            "value": "@pipeline().parameters.PASSWORD_SNOWFLAKE",
+                            "type": "Expression"
+                        },
+                        "MinWorker": 2,
+                        "MaxWorker": 4,
+                        "BatchDuration": 3000,
+                        "TimeOut": 900000,
+                        "BroadCastTimeOut": 300,
+                        "ClusterVersion": "6.4.x-esr-scala2.11",
+                        "JobTag": {
+                            "value": "@pipeline().parameters.JOB_TAG",
+                            "type": "Expression"
+                        },
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "JdbcURL": "defaultJdbcUrl",
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "TmsType": "defaultTMSType",
+                        "PrimaryKey": "defaultKey",
+                        "Stage1": "defaultStage",
+                        "Target": "defaultTarget",
+                        "OldEventsPath": "defaultOldEventsPath",
+                        "NewEventsPath": "defaultNewEventsPath",
+                        "FirstSnapShotEvents": "defaultEvents",
+                        "FirstSnapShotoldEvents": "defaultEvents",
+                        "Schema": "defaultSchema",
+                        "BackFilingQuerypath": "defaultQuery",
+                        "StageDmlQuery": "defaultQuery",
+                        "DataframeKey": "defaultDFKey",
+                        "ShufflePartition": 200
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "ENVIRONMENT": {
+                "type": "string",
+                "defaultValue": "PROD"
+            },
+            "PARAM1": {
+                "type": "string",
+                "defaultValue": "unused"
+            },
+            "PARAM2": {
+                "type": "string",
+                "defaultValue": "unused"
+            },
+            "SID": {
+                "type": "string",
+                "defaultValue": "4"
+            },
+            "EID": {
+                "type": "string",
+                "defaultValue": "11"
+            },
+            "SQL_BROADCAST_TIMEOUT": {
+                "type": "string",
+                "defaultValue": "36000"
+            },
+            "CONFIG": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/tables/config/rms_upc_barcode/ws_item_supplier_barcode/rms_ws_item_supplier_barcode_l1.json"
+            },
+            "INGEST_ETL_JAR": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/jars/8ed171a0_c377_4389_a6aa_89480894f9ea-big_analytics_generic_ingestion_Planck2020_v1-59d48.jar"
+            },
+            "ODBC_JAR": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/jars/4ff578f9_d9b0_415a_9d5b_1ea5c22cb1b6-Oracle_ojdbc6_11_2_0_3-c74db.jar"
+            },
+            "CLIENT_ID": {
+                "type": "string",
+                "defaultValue": "a775e1b6-796d-49aa-b4ae-c478d7892f38"
+            },
+            "CLIENT_KEY": {
+                "type": "string",
+                "defaultValue": "6bMa+_SX@XuG?MM3fzxL5o7Q_KW1=*jt"
+            },
+            "VAULT_BASE_URL": {
+                "type": "string",
+                "defaultValue": "https://prod-edap-key-vault.vault.azure.net"
+            },
+            "RMS_USER_NAME_KEY": {
+                "type": "string",
+                "defaultValue": "RMS-ORACLE-UserKey"
+            },
+            "RMS_PASSWORD_KEY": {
+                "type": "string",
+                "defaultValue": "RMS-ORACLE-PassKey"
+            },
+            "RMS_JDBC_URL": {
+                "type": "string",
+                "defaultValue": "jdbc:oracle:thin:@RMSDBPRDRK2P.wsgc.com:1521/rmsrep"
+            },
+            "USER_NAME_SNOWFLAKE": {
+                "type": "string",
+                "defaultValue": "ADF-SnowFlake-Userkey"
+            },
+            "PASSWORD_SNOWFLAKE": {
+                "type": "string",
+                "defaultValue": "ADF-SnowFlake-PassKey"
+            },
+            "QC_CONFIG": {
+                "type": "string",
+                "defaultValue": "/dbfs/FileStore/tables/config/rms_upc_barcode/ws_item_supplier_barcode/ws_item_supplier_barcode_qc_check2.json"
+            },
+            "JOB_TAG": {
+                "type": "string",
+                "defaultValue": "ADB_RMS_WS_ITEM_SUPPLIER_BARCODE"
+            },
+            "PID": {
+                "type": "string",
+                "defaultValue": "1"
+            }
+        },
+        "variables": {
+            "SID": {
+                "type": "String",
+                "defaultValue": "1"
+            },
+            "EID": {
+                "type": "String",
+                "defaultValue": "7"
+            }
+        },
+        "folder": {
+            "name": "RMS_UPC_BARCODE_TABLES"
+        },
+        "annotations": [],
+        "lastPublishTime": "2022-07-06T23:46:03Z"
+    },
+    "type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,60 @@
+{
+   "qcId": "VENDOR_COST_CHANGE",
+   "description": "VENDOR_COST_CHANGE QC check",
+   "appQueries": [
+      {
+         "queryId": 1,
+         "description": "VENDOR_COST_CHANGE Snowflake-Delta Null Check",
+         "source": {
+            "system": "snowflake",
+            "query": "select cast(count(*) as double) from PROD_EDAP_ANALYTICS_DB.PROD_EDAP_ANALYTICS_TABLES.VENDOR_COST_CHANGE where VENDOR_COST_CHANGE_KEY IS NULL and VENDOR_COST_CHANGE_ID IS NULL",
+            "keyVaultAuth": {
+               "keyVaultParams": {
+                  "clientId": "${spark.wsgc.clientId}",
+                  "clientKey": "${spark.wsgc.clientkey}",
+                  "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+                  "usernameKey": "${spark.wsgc.usernamekey}",
+                  "passwordKey": "${spark.wsgc.passwordkey}"
+               }
+            },
+            "snowflake": {
+               "sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+               "sfAccount": "williamssonoma",
+               "sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+               "sfDatabase": "PROD_EDAP_ANALYTICS_DB",
+               "sfSchema": "PROD_EDAP_ANALYTICS_TABLES"
+            }
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      },
+      {
+         "queryId": 2,
+         "description": "VENDOR_COST_CHANGE Snowflake-Delta Duplicate Check",
+         "source": {
+            "system": "snowflake",
+            "query": "select cast(count(*) as double) from (SELECT VENDOR_COST_CHANGE_KEY FROM PROD_EDAP_ANALYTICS_DB.PROD_EDAP_ANALYTICS_TABLES.VENDOR_COST_CHANGE WHERE LAST_EFFECTIVE_TS='9999-12-31 23:59:59.000' GROUP BY VENDOR_COST_CHANGE_KEY HAVING COUNT(*) > 1)",
+            "keyVaultAuth": {
+               "keyVaultParams": {
+                  "clientId": "${spark.wsgc.clientId}",
+                  "clientKey": "${spark.wsgc.clientkey}",
+                  "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+                  "usernameKey": "${spark.wsgc.usernamekey}",
+                  "passwordKey": "${spark.wsgc.passwordkey}"
+               }
+            },
+            "snowflake": {
+               "sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+               "sfAccount": "williamssonoma",
+               "sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+               "sfDatabase": "PROD_EDAP_ANALYTICS_DB",
+               "sfSchema": "PROD_EDAP_ANALYTICS_TABLES"
+            }
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      }
+   ]
+}

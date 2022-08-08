@@ -1,0 +1,67 @@
+{
+    "name": "RMS_UPC_BARCODE_DAILY",
+    "properties": {
+        "activities": [
+            {
+                "name": "COST_SUP_SUSP_HEAD",
+                "type": "ExecutePipeline",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "RMS_COST_SUSP_SUP_HEAD_INGEST",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true
+                }
+            },
+            {
+                "name": "ITEM_VENDOR_BARCODE",
+                "type": "ExecutePipeline",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "RMS_WS_ITEM_SUPPLIER_BARCODE_INGEST",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true
+                }
+            },
+            {
+                "name": "VENDOR_ATTR",
+                "type": "ExecutePipeline",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "RMS_SUP_ATTRIBUTES_INGEST",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true
+                }
+            },
+            {
+                "name": "COST_SUSP_SUP_DETAIL_LOC",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                    {
+                        "activity": "COST_SUP_SUSP_HEAD",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "RMS_COST_SUSP_SUP_DETAIL_LOC_INGEST",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true
+                }
+            }
+        ],
+        "annotations": []
+    }
+}

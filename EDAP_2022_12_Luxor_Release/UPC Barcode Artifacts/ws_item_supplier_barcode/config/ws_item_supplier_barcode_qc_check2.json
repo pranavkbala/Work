@@ -1,0 +1,60 @@
+{
+   "qcId": "ITEM_VENDOR_BARCODE",
+   "description": "ITEM_VENDOR_BARCODE QC check",
+   "appQueries": [
+      {
+         "queryId": 1,
+         "description": "ITEM_VENDOR_BARCODE Snowflake-Delta Null Check",
+         "source": {
+            "system": "snowflake",
+            "query": "select cast(count(*) as double) from PROD_EDAP_ANALYTICS_DB.PROD_EDAP_ANALYTICS_TABLES.ITEM_VENDOR_BARCODE where ITEM_VENDOR_BARCODE_KEY IS NULL",
+            "keyVaultAuth": {
+               "keyVaultParams": {
+                  "clientId": "${spark.wsgc.clientId}",
+                  "clientKey": "${spark.wsgc.clientkey}",
+                  "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+                  "usernameKey": "${spark.wsgc.usernamekey}",
+                  "passwordKey": "${spark.wsgc.passwordkey}"
+               }
+            },
+            "snowflake": {
+               "sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+               "sfAccount": "williamssonoma",
+               "sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+               "sfDatabase": "PROD_EDAP_ANALYTICS_DB",
+               "sfSchema": "PROD_EDAP_ANALYTICS_TABLES"
+            }
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      },
+      {
+         "queryId": 2,
+         "description": "ITEM_VENDOR_BARCODE Snowflake-Delta Duplicate Check",
+         "source": {
+            "system": "snowflake",
+            "query": "select cast(count(*) as double) from (SELECT ITEM_VENDOR_BARCODE_KEY FROM PROD_EDAP_ANALYTICS_DB.PROD_EDAP_ANALYTICS_TABLES.ITEM_VENDOR_BARCODE WHERE LAST_EFFECTIVE_TS='9999-12-31 23:59:59.000' GROUP BY ITEM_VENDOR_BARCODE_KEY HAVING COUNT(*) > 1)",
+            "keyVaultAuth": {
+               "keyVaultParams": {
+                  "clientId": "${spark.wsgc.clientId}",
+                  "clientKey": "${spark.wsgc.clientkey}",
+                  "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+                  "usernameKey": "${spark.wsgc.usernamekey}",
+                  "passwordKey": "${spark.wsgc.passwordkey}"
+               }
+            },
+            "snowflake": {
+               "sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+               "sfAccount": "williamssonoma",
+               "sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+               "sfDatabase": "PROD_EDAP_ANALYTICS_DB",
+               "sfSchema": "PROD_EDAP_ANALYTICS_TABLES"
+            }
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      }
+   ]
+}

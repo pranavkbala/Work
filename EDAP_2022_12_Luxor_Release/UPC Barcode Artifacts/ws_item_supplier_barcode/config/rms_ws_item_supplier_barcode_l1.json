@@ -1,0 +1,56 @@
+{
+	"parallelism": 1,
+	"onJobFailure": "Fail",
+	"onEmptyDF": "Fail",
+	"ignoreInvalidRows": true,
+	"cleanColumnNames": true,
+	"jobs": [
+		{
+			"name": "GenericPassThroughBatchJob.RMS_WS_ITEM_SUPPLIER_BARCODE_L1",
+			"description": "Extract RMS Data from WS_ITEM_SUPPLIER_BARCODE Table",
+			"ignoreInvalidRows": true,
+			"cleanColumnNames": true,
+			"jdbcInputs": [
+				{
+					"dataFrameName": "RMS_WS_ITEM_SUPPLIER_BARCODE_L1",
+					"driver": "oracle.jdbc.driver.OracleDriver",
+					"flavor": "oracle",
+					"fetchSize": 30000,
+					"numPartitions": 50,
+					"url": "${spark.wsgc.jdbcUrl}",
+					"keyVaultAuth": {
+						"keyVaultParams": {
+							"clientId": "${spark.wsgc.clientId}",
+							"clientKey": "${spark.wsgc.clientkey}",
+							"usernameKey": "${spark.wsgc.usernamekey}",
+							"passwordKey": "${spark.wsgc.passwordkey}",
+							"vaultBaseUrl": "${spark.wsgc.vaultbaseurl}"
+						}
+					},
+					"table": "(select ITEM,SUPPLIER,BARCODE,BARCODE_TYPE,TRAVERSAL_FLAG,CREATE_DATETIME,LAST_UPDATE_DATETIME,LAST_UPDATE_ID FROM RMS_OWNER.WS_ITEM_SUPPLIER_BARCODE)a1"
+				}
+			],
+			"snowflakeOutputs": [
+				{
+					"dataFrameName": "RMS_WS_ITEM_SUPPLIER_BARCODE_L1",
+					"sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+					"sfAccount": "williamssonoma",
+					"keyVaultAuth": {
+						"keyVaultParams": {
+							"clientId": "${spark.wsgc.clientId}",
+							"clientKey": "${spark.wsgc.clientkey}",
+							"vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+							"usernameKey": "ADF-SnowFlake-Userkey",
+							"passwordKey": "ADF-SnowFlake-PassKey"
+						}
+					},
+					"sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+					"sfDatabase": "PROD_EDAP_L1_DB",
+					"sfSchema": "PROD_EDAP_L1_TABLES",
+					"tableName": "L1_RMS_WS_ITEM_SUPPLIER_BARCODE_LANDING",
+					"saveMode": "Overwrite"
+				}
+			]
+		}
+	]
+}

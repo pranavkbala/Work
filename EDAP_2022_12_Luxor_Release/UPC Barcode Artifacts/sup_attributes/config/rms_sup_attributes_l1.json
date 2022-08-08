@@ -1,0 +1,56 @@
+{
+	"parallelism": 1,
+	"onJobFailure": "Fail",
+	"onEmptyDF": "Fail",
+	"ignoreInvalidRows": true,
+	"cleanColumnNames": true,
+	"jobs": [
+		{
+			"name": "GenericPassThroughBatchJob.RMS_SUP_ATTRIBUTES_L1",
+			"description": "Extract RMS Data from SUP_ATTRIBUTES Table",
+			"ignoreInvalidRows": true,
+			"cleanColumnNames": true,
+			"jdbcInputs": [
+				{
+					"dataFrameName": "RMS_SUP_ATTRIBUTES_L1",
+					"driver": "oracle.jdbc.driver.OracleDriver",
+					"flavor": "oracle",
+					"fetchSize": 30000,
+					"numPartitions": 50,
+					"url": "${spark.wsgc.jdbcUrl}",
+					"keyVaultAuth": {
+						"keyVaultParams": {
+							"clientId": "${spark.wsgc.clientId}",
+							"clientKey": "${spark.wsgc.clientkey}",
+							"usernameKey": "${spark.wsgc.usernamekey}",
+							"passwordKey": "${spark.wsgc.passwordkey}",
+							"vaultBaseUrl": "${spark.wsgc.vaultbaseurl}"
+						}
+					},
+					"table": "(SELECT SUPPLIER,WSI_CLAIM_FLAG,WSI_FEDEX_NO,WSI_FEDEX_NO_PRIM_IND,WSI_GEN_FEDEX_NO,WSI_GEN_FEDEX_NO_PRIM_IND,WSI_VENDOR_FEDEX_NO,WSI_VENDOR_FEDEX_NO_PRIM_IND,WSI_PAPER_DELIVERY_METHOD,WSI_PAPER_DEL_METHD_PRIM_IND,WSI_EMAIL_DELIVERY_METHOD,WSI_EMAIL_DEL_METHD_PRIM_IND,WSI_FAX_DELIVERY_METHOD,WSI_FAX_DEL_METHD_PRIM_IND,WSI_DIRECT_SHIP_IND,WSI_PERSONALIZATION_IND,PLM_SUPPLIER_ID,SPS_STOCK_PO,SPS_STOCK_PO_ACTIVE_DATE,SPS_DS_PARCEL_PO,SPS_DS_PARCEL_ACTIVE_DATE,SPS_DS_FURNITURE_PO,SPS_DS_FURNITURE_ACTIVE_DATE,WSI_INT_DIRECT_SHIP_IND,LAST_DS_UPDATE_ID,LAST_DS_UPDATE_DATE,BARCODE_ENABLED,BARCODE_UPDATE_ID,BARCODE_UPDATE_TS FROM RMS_OWNER.SUP_ATTRIBUTES)a1"
+				}
+			],
+			"snowflakeOutputs": [
+				{
+					"dataFrameName": "RMS_SUP_ATTRIBUTES_L1",
+					"sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+					"sfAccount": "williamssonoma",
+					"keyVaultAuth": {
+						"keyVaultParams": {
+							"clientId": "${spark.wsgc.clientId}",
+							"clientKey": "${spark.wsgc.clientkey}",
+							"vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+							"usernameKey": "ADF-SnowFlake-Userkey",
+							"passwordKey": "ADF-SnowFlake-PassKey"
+						}
+					},
+					"sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+					"sfDatabase": "PROD_EDAP_L1_DB",
+					"sfSchema": "PROD_EDAP_L1_TABLES",
+					"tableName": "L1_RMS_SUP_ATTRIBUTES_LANDING",
+					"saveMode": "Overwrite"
+				}
+			]
+		}
+	]
+}
