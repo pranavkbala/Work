@@ -1,0 +1,41 @@
+{
+    "parallelism": 4,
+    "onJobFailure": "Fail",
+    "onEmptyDF": "Fail",
+    "ignoreInvalidRows": true,
+    "cleanColumnNames": true,
+    "jobs": [
+        {
+            "name": "GenericPassThroughBatchJob.XEFILE_CURRENCY_EXCHANGE_RATE_L1",
+            "description": "Load XEFile Currency Exchange Rate data into L1",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "fileInputs": [
+                            {
+                            "dataFrameName": "DF_XE_CER_L1",
+                            "inferSchema": false,
+                            "format": "CSV",
+                            "header": false,
+                            "delimiter": ",",
+                            "dataFrameSchema": "/dbfs/FileStore/tables/config/currency_rates/xe_currency_rate_schema.json",
+                            "path": "dbfs:/mnt/data/governed/l0/xefile_currency_exchange_rate/file/inbound/",
+                            "archivePath": "dbfs:/mnt/data/governed/l0/xefile_currency_exchange_rate/file/inbound_archive/"
+                            }
+                        ],
+            "fileOutputs": [
+                {
+                    "dataFrameName": "DF_XE_CER_L1",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/xefile_currency_exchange_rate/file/inbound/",
+                    "saveMode": "Overwrite"
+                },
+                {
+                    "dataFrameName": "DF_XE_CER_L1",
+                    "format": "DELTA",
+                    "path": "dbfs:/mnt/data/governed/l1/xefile_currency_exchange_rate/file/inbound_archive/",
+                    "saveMode": "Append"
+                }
+            ]
+        }
+    ]
+}

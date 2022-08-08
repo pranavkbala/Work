@@ -1,0 +1,29 @@
+{
+  "type": "struct",
+  "fields": [
+    {
+      "name": "CURRENCY_CD",
+      "type": "string",
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "CURRENCY_DESC",
+      "type": "string",
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "EXCHANGE_RATE",
+      "type": "string",
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "INV_EXCHANGE_RATE",
+      "type": "string",
+      "nullable": true,
+      "metadata": {}
+    }
+  ]
+}

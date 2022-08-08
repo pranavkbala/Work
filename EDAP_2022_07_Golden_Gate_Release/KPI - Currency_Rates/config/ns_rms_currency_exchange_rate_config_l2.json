@@ -1,0 +1,68 @@
+{
+  "parallelism":1,
+  "onJobFailure":"Fail",
+  "onEmptyDF":"Fail",
+  "ignoreInvalidRows":true,
+  "cleanColumnNames":true,
+  "jobs":[
+    {
+      "name":"GenericPassThroughBatchJob.RMS_NS_CURRENCY_EXCHANGE_RATE_L2",
+      "description":"Join inputs from RMS and Netsuite stage tables and Load into L2 Analytics Table",
+      "ignoreInvalidRows":true,
+      "cleanColumnNames":true,
+      "fileInputs":[
+        {
+          "dataFrameName":"exchageCurencyL2DF",
+          "format":"DELTA",
+          "path":"dbfs:/mnt/data/governed/l2/stage/location/rms_currency_exchange_rate_stage"
+        },
+        {
+          "dataFrameName":"NS_CURRENCY_EXCHANGE_RATE_L2_STAGE",
+          "format":"DELTA",
+          "path":"dbfs:/mnt/data/governed/l2/stage/currency_exchange_rate/ns_currency_exchange_rate_stg"
+        },
+        {
+          "dataFrameName":"XE_CURRENCY_EXCHANGE_RATE_L2_STAGE",
+          "format":"DELTA",
+          "path":"dbfs:/mnt/data/governed/l2/stage/currency_exchange_rate/xe_currency_exchange_rate_stage"
+        }
+      ],
+      "deltaOutputs":[
+        {
+          "dataFrameName":"exchageCurencyL2DF",
+          "format":"DELTA",
+          "dbName":"L2_STAGE",
+          "partitions": 1,
+          "tableName":"RMS_CURRENCY_EXCHANGE_RATE_STAGE",
+          "options": {
+          "path": "dbfs:/mnt/data/governed/l2/stage/location/rms_currency_exchange_rate_stage"
+        },
+      "saveMode":"Overwrite"},
+        {
+          "dataFrameName":"XE_CURRENCY_EXCHANGE_RATE_L2_STAGE",
+          "format":"DELTA",
+          "dbName":"L2_STAGE",
+          "partitions": 1,
+          "tableName":"XE_CURRENCY_EXCHANGE_RATE_STAGE",
+          "options": {
+          "path": "dbfs:/mnt/data/governed/l2/stage/currency_exchange_rate/xe_currency_exchange_rate_stage"
+        },
+      "saveMode":"Overwrite"},
+        {
+          "dataFrameName":"NS_CURRENCY_EXCHANGE_RATE_L2_STAGE",
+          "format":"DELTA",
+          "dbName":"L2_STAGE",
+          "partitions": 1,
+          "tableName":"NS_CURRENCY_EXCHANGE_RATE_STG",
+          "options": {
+          "path": "dbfs:/mnt/data/governed/l2/stage/currency_exchange_rate/ns_currency_exchange_rate_stg"
+        },         
+        "queryPaths": [
+          "/dbfs/FileStore/tables/sql/currency_rates/cer_merge_into_ndp.sql"
+        ],
+          "saveMode":"Overwrite"
+        }
+      ]
+    }
+  ]
+}

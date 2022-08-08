@@ -1,0 +1,1150 @@
+{
+    "name": "RMS_EXCHANGE_CURRENCY_L2_SNOFLK",
+    "properties": {
+        "activities": [
+            {
+                "name": "BIF_RMS_ExchangeCurrency_L1",
+                "type": "DatabricksSparkJar",
+                "dependsOn": [
+                    {
+                        "activity": "RMS_AUDIT_CHECK",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.05:00:00",
+                    "retry": 2,
+                    "retryIntervalInSeconds": 300,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "mainClassName": {
+                        "value": "@pipeline().parameters.MAIN_CLASS",
+                        "type": "Expression"
+                    },
+                    "parameters": [],
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.JAR"
+                        },
+                        {
+                            "jar": "@pipeline().parameters.Dependency_jar"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": {
+                            "value": "@pipeline().parameters.SPARK_JOB_L1",
+                            "type": "Expression"
+                        },
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.SPARK_CONFIG",
+                            "type": "Expression"
+                        },
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MaxRatePerPartition": 0,
+                        "MinRatePerPartition": 1,
+                        "GracefulShutdown": "true",
+                        "ClientID": {
+                            "value": "@pipeline().parameters.CLIENT_ID",
+                            "type": "Expression"
+                        },
+                        "ClientKey": {
+                            "value": "@pipeline().parameters.CLIENT_KEY",
+                            "type": "Expression"
+                        },
+                        "ValutBaseUrl": {
+                            "value": "@pipeline().parameters.VAULT_BASE_URL",
+                            "type": "Expression"
+                        },
+                        "UserNameKey": {
+                            "value": "@pipeline().parameters.USER_NAME_KEY",
+                            "type": "Expression"
+                        },
+                        "PasswordKey": {
+                            "value": "@pipeline().parameters.PASSWORD_KEY",
+                            "type": "Expression"
+                        },
+                        "MinWorker": 1,
+                        "MaxWorker": 2,
+                        "BatchDuration": 3000,
+                        "TimeOut": 900000,
+                        "BroadCastTimeOut": 300,
+                        "ClusterVersion": "5.3.x-scala2.11",
+                        "JobTag": "ADB_RMS_EXCHANGE_CURRENCY",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "JdbcURL": "defaultJdbcUrl",
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "KafkaTopics": "defaultKafkaTopics",
+                        "KafkaGroupId": "defaultKafkaGroupId",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "TmsType": "defaultTMSType",
+                        "PrimaryKey": "defaultKey",
+                        "Stage1": "defaultStage",
+                        "Target": "defaultTarget",
+                        "OldEventsPath": "defaultOldEventsPath",
+                        "NewEventsPath": "defaultNewEventsPath",
+                        "FirstSnapShotEvents": "defaultEvents",
+                        "FirstSnapShotoldEvents": "defaultEvents",
+                        "Schema": "defaultSchema",
+                        "BackFilingQuerypath": "defaultQuery",
+                        "StageDmlQuery": "defaultQuery",
+                        "DataframeKey": "defaultDFKey",
+                        "ShufflePartition": 200,
+                        "BroadcastJoinThreshold": 10485760,
+                        "SnowflakeUserNameKey": "defaultUserNameKey",
+                        "SnowflakePasswordKey": "defaultPasswordKey"
+                    }
+                }
+            },
+            {
+                "name": "BIF_L1_ExchageCurrency_L2",
+                "type": "DatabricksSparkJar",
+                "dependsOn": [
+                    {
+                        "activity": "BIF_RMS_ExchangeCurrency_L1",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.07:00:00",
+                    "retry": 2,
+                    "retryIntervalInSeconds": 300,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "mainClassName": {
+                        "value": "@pipeline().parameters.MAIN_CLASS",
+                        "type": "Expression"
+                    },
+                    "parameters": [],
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": {
+                            "value": "@pipeline().parameters.SPARK_JOB_L2",
+                            "type": "Expression"
+                        },
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.SPARK_CONFIG",
+                            "type": "Expression"
+                        },
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MaxRatePerPartition": 0,
+                        "MinRatePerPartition": 1,
+                        "GracefulShutdown": "true",
+                        "ClientID": "defaultClientID",
+                        "ClientKey": "defaultClientKey",
+                        "ValutBaseUrl": "defaultValutBaseUrl",
+                        "UserNameKey": "defaultUserNameKey",
+                        "PasswordKey": "defaultPasswordKey",
+                        "MinWorker": 1,
+                        "MaxWorker": 2,
+                        "BatchDuration": 3000,
+                        "TimeOut": 900000,
+                        "BroadCastTimeOut": 300,
+                        "ClusterVersion": "5.3.x-scala2.11",
+                        "JobTag": "ADB_RMS_EXCHANGE_CURRENCY",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "JdbcURL": "defaultJdbcUrl",
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "KafkaTopics": "defaultKafkaTopics",
+                        "KafkaGroupId": "defaultKafkaGroupId",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "TmsType": "defaultTMSType",
+                        "PrimaryKey": "defaultKey",
+                        "Stage1": "defaultStage",
+                        "Target": "defaultTarget",
+                        "OldEventsPath": "defaultOldEventsPath",
+                        "NewEventsPath": "defaultNewEventsPath",
+                        "FirstSnapShotEvents": "defaultEvents",
+                        "FirstSnapShotoldEvents": "defaultEvents",
+                        "Schema": "defaultSchema",
+                        "BackFilingQuerypath": "defaultQuery",
+                        "StageDmlQuery": "defaultQuery",
+                        "DataframeKey": "defaultDFKey",
+                        "ShufflePartition": 200,
+                        "BroadcastJoinThreshold": 10485760
+                    }
+                }
+            },
+            {
+                "name": "DELETE_L1_File_Inbound",
+                "type": "Delete",
+                "dependsOn": [
+                    {
+                        "activity": "RMS_EXCHANGE_CURRENCY_SNOFLK",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "ADL_DIRECTORY",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "PATH": {
+                                "value": "@pipeline().parameters.L1_PATH",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "enableLogging": false,
+                    "recursive": true
+                }
+            },
+            {
+                "name": "QC_L1_L2",
+                "type": "DatabricksNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "RMS_NS_CURRENCY_EXCHANGE_RATE_L2",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.05:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "notebookPath": "/Users/msurnam@wsgc.com/2020/sales/QC/Exchange_Rate_QC"
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_6_2",
+                    "type": "LinkedServiceReference"
+                }
+            },
+            {
+                "name": "RMS_AUDIT_CHECK",
+                "type": "DatabricksNotebook",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.00:10:00",
+                    "retry": 5,
+                    "retryIntervalInSeconds": 1200,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "notebookPath": "/Users/msurnam@wsgc.com/2020/rms/RMS_AUDIT_PULL",
+                    "baseParameters": {
+                        "SOURCE_NAME": "currency"
+                    },
+                    "libraries": [
+                        {
+                            "jar": "dbfs:/FileStore/jars/5630af36_b6b6_4f06_9696_70330fb5e47f-jdbc_oracle_hubble-3393d.jar"
+                        },
+                        {
+                            "jar": "dbfs:/FileStore/jars/673cc247_67c6_447c_8955_67e51237455e-big_analytics_generic_file_0_0_1_all_sales_Galileo-df963.jar"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic_Notebook",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "ClusterVersion": "6.4.x-scala2.11",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "MinWorker": 1,
+                        "MaxWorker": 2,
+                        "JobTag": "ADB_RMS_EXCHANGE_CURRENCY",
+                        "conceptId": 0,
+                        "siteId": "siteId",
+                        "outputFileName": "outputFileName"
+                    }
+                }
+            },
+            {
+                "name": "RMS_EXCHANGE_CURRENCY_SNOFLK",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                    {
+                        "activity": "QC_L1_L2",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "RMS_EXCHANGE_CURRENCY_SNOFLK",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true
+                }
+            },
+            {
+                "name": "RMS_NS_CURRENCY_EXCHANGE_RATE_L2",
+                "type": "DatabricksSparkJar",
+                "dependsOn": [
+                    {
+                        "activity": "CURRENCY_EXCHANGE_RATE_L2",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    },
+                    {
+                        "activity": "BIF_L1_ExchageCurrency_L2",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    },
+                    {
+                        "activity": "XE_L1_L2_TRANSFORMATION",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "mainClassName": {
+                        "value": "@pipeline().parameters.MAIN_CLASS",
+                        "type": "Expression"
+                    },
+                    "parameters": [],
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.JAR"
+                        },
+                        {
+                            "jar": "@pipeline().parameters.Dependency_jar"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": {
+                            "value": "@pipeline().parameters.L2_NS_RMS_JOB",
+                            "type": "Expression"
+                        },
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.L2_NS_RMS_CONFIG",
+                            "type": "Expression"
+                        },
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MaxRatePerPartition": 0,
+                        "MinRatePerPartition": 1,
+                        "GracefulShutdown": "true",
+                        "ClientID": {
+                            "value": "@pipeline().parameters.CLIENT_ID",
+                            "type": "Expression"
+                        },
+                        "ClientKey": {
+                            "value": "@pipeline().parameters.CLIENT_KEY",
+                            "type": "Expression"
+                        },
+                        "ValutBaseUrl": "defaultValutBaseUrl",
+                        "UserNameKey": "defaultUserNameKey",
+                        "PasswordKey": "defaultPasswordKey",
+                        "MinWorker": 1,
+                        "MaxWorker": 2,
+                        "BatchDuration": 3000,
+                        "TimeOut": 900000,
+                        "BroadCastTimeOut": 300,
+                        "ClusterVersion": "6.4.x-scala2.11",
+                        "JobTag": "RMS_NS_L2",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "JdbcURL": "defaultJdbcUrl",
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "KafkaTopics": "defaultKafkaTopics",
+                        "KafkaGroupId": "defaultKafkaGroupId",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "TmsType": "defaultTMSType",
+                        "PrimaryKey": "defaultKey",
+                        "Stage1": "defaultStage",
+                        "Target": "defaultTarget",
+                        "OldEventsPath": "defaultOldEventsPath",
+                        "NewEventsPath": "defaultNewEventsPath",
+                        "FirstSnapShotEvents": "defaultEvents",
+                        "FirstSnapShotoldEvents": "defaultEvents",
+                        "Schema": "defaultSchema",
+                        "BackFilingQuerypath": "defaultQuery",
+                        "StageDmlQuery": "defaultQuery",
+                        "DataframeKey": "defaultDFKey",
+                        "ShufflePartition": 200,
+                        "BroadcastJoinThreshold": 10485760,
+                        "SnowflakeUserNameKey": "defaultUserNameKey",
+                        "SnowflakePasswordKey": "defaultPasswordKey"
+                    }
+                }
+            },
+            {
+                "name": "CURRENCY_EXCHANGE_RATE_L2",
+                "type": "DatabricksSparkJar",
+                "dependsOn": [
+                    {
+                        "activity": "CURRENCY_EXCHANGE_RATE_L1",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "mainClassName": "com.wsgc.bigdata.SampleBatchAnalytics",
+                    "parameters": [],
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.INGEST_ETL_JAR"
+                        },
+                        {
+                            "jar": "@pipeline().parameters.ODBC_JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": "GenericPassThroughBatchJob.CURRENCY_EXCHANGE_RATE_L2",
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.L2_CONFIG",
+                            "type": "Expression"
+                        },
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MaxRatePerPartition": 0,
+                        "MinRatePerPartition": 1,
+                        "GracefulShutdown": "true",
+                        "ClientID": "defaultClientID",
+                        "ClientKey": "defaultClientKey",
+                        "ValutBaseUrl": "defaultValutBaseUrl",
+                        "UserNameKey": {
+                            "value": "@pipeline().parameters.STERLING_USER_NAME_KEY",
+                            "type": "Expression"
+                        },
+                        "PasswordKey": {
+                            "value": "@pipeline().parameters.STERLING_PASSWORD_KEY",
+                            "type": "Expression"
+                        },
+                        "MinWorker": 1,
+                        "MaxWorker": 2,
+                        "BatchDuration": 3000,
+                        "TimeOut": 900000,
+                        "BroadCastTimeOut": {
+                            "value": "@pipeline().parameters.SQL_BROADCAST_TIMEOUT",
+                            "type": "Expression"
+                        },
+                        "ClusterVersion": "6.4.x-scala2.11",
+                        "JobTag": "NS_CER_L2",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "JdbcURL": {
+                            "value": "@pipeline().parameters.STERLING_JDBC_URL",
+                            "type": "Expression"
+                        },
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "KafkaTopics": "defaultKafkaTopics",
+                        "KafkaGroupId": "defaultKafkaGroupId",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "TmsType": "defaultTMSType",
+                        "PrimaryKey": "defaultKey",
+                        "Stage1": "defaultStage",
+                        "Target": "defaultTarget",
+                        "OldEventsPath": "defaultOldEventsPath",
+                        "NewEventsPath": "defaultNewEventsPath",
+                        "FirstSnapShotEvents": "defaultEvents",
+                        "FirstSnapShotoldEvents": "defaultEvents",
+                        "Schema": "defaultSchema",
+                        "BackFilingQuerypath": "defaultQuery",
+                        "StageDmlQuery": "defaultQuery",
+                        "DataframeKey": "defaultDFKey",
+                        "ShufflePartition": 200,
+                        "BroadcastJoinThreshold": 10485760
+                    }
+                }
+            },
+            {
+                "name": "CURRENCY_EXCHANGE_RATE_L1",
+                "type": "DatabricksSparkJar",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "4.00:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "mainClassName": "com.wsgc.bigdata.SampleBatchAnalytics",
+                    "parameters": [],
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.INGEST_ETL_JAR"
+                        },
+                        {
+                            "jar": "@pipeline().parameters.ODBC_JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": {
+                            "value": "GenericPassThroughBatchJob.CURRENCY_EXCHANGE_RATE_L1",
+                            "type": "Expression"
+                        },
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.L1_CONFIG",
+                            "type": "Expression"
+                        },
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MaxRatePerPartition": 0,
+                        "MinRatePerPartition": 1,
+                        "GracefulShutdown": "true",
+                        "ClientID": {
+                            "value": "@pipeline().parameters.NS_CLIENT_ID",
+                            "type": "Expression"
+                        },
+                        "ClientKey": {
+                            "value": "@pipeline().parameters.NS_CLIENT_KEY",
+                            "type": "Expression"
+                        },
+                        "ValutBaseUrl": {
+                            "value": "@pipeline().parameters.NS_VAULT_BASE_URL",
+                            "type": "Expression"
+                        },
+                        "UserNameKey": {
+                            "value": "@pipeline().parameters.STERLING_USER_NAME_KEY",
+                            "type": "Expression"
+                        },
+                        "PasswordKey": {
+                            "value": "@pipeline().parameters.STERLING_PASSWORD_KEY",
+                            "type": "Expression"
+                        },
+                        "MinWorker": 2,
+                        "MaxWorker": 4,
+                        "BatchDuration": 3000,
+                        "TimeOut": 900000,
+                        "BroadCastTimeOut": {
+                            "value": "@pipeline().parameters.SQL_BROADCAST_TIMEOUT",
+                            "type": "Expression"
+                        },
+                        "ClusterVersion": "6.4.x-scala2.11",
+                        "JobTag": "NS_CER_L1",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "JdbcURL": {
+                            "value": "@pipeline().parameters.STERLING_JDBC_URL",
+                            "type": "Expression"
+                        },
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "KafkaTopics": "defaultKafkaTopics",
+                        "KafkaGroupId": "defaultKafkaGroupId",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "TmsType": "defaultTMSType",
+                        "PrimaryKey": "defaultKey",
+                        "Stage1": "defaultStage",
+                        "Target": "defaultTarget",
+                        "OldEventsPath": "defaultOldEventsPath",
+                        "NewEventsPath": "defaultNewEventsPath",
+                        "FirstSnapShotEvents": "defaultEvents",
+                        "FirstSnapShotoldEvents": "defaultEvents",
+                        "Schema": "defaultSchema",
+                        "BackFilingQuerypath": "defaultQuery",
+                        "StageDmlQuery": "defaultQuery",
+                        "DataframeKey": "defaultDFKey",
+                        "ShufflePartition": 200,
+                        "BroadcastJoinThreshold": 10485760,
+                        "SnowflakeUserNameKey": "defaultUserNameKey",
+                        "SnowflakePasswordKey": "defaultPasswordKey"
+                    }
+                }
+            },
+            {
+                "name": "GetFileList",
+                "description": "Get the list of file",
+                "type": "GetMetadata",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.04:00:00",
+                    "retry": 2,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "BLOB_SOURCE",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "container": "landing-zone",
+                            "directory": "currency_exchange_rate"
+                        }
+                    },
+                    "fieldList": [
+                        "childItems"
+                    ],
+                    "storeSettings": {
+                        "type": "AzureBlobStorageReadSettings",
+                        "recursive": true
+                    },
+                    "formatSettings": {
+                        "type": "BinaryReadSettings"
+                    }
+                }
+            },
+            {
+                "name": "FilterFiles",
+                "description": "Only files will be selected, the source-folders will not be selected.",
+                "type": "Filter",
+                "dependsOn": [
+                    {
+                        "activity": "GetFileList",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@activity('GetFileList').output.childItems",
+                        "type": "Expression"
+                    },
+                    "condition": {
+                        "value": "@equals(item().type, 'File')",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "MOVE_FILES_TO_L0",
+                "description": "Iterate each file, and move them one by one.",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "FilterFiles",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@activity('FilterFiles').output.value",
+                        "type": "Expression"
+                    },
+                    "batchCount": 20,
+                    "activities": [
+                        {
+                            "name": "CopyAFile_stg",
+                            "description": "Copy a file from the source store to the destination store.",
+                            "type": "Copy",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.03:00:00",
+                                "retry": 2,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "source": {
+                                    "type": "BinarySource",
+                                    "storeSettings": {
+                                        "type": "AzureBlobStorageReadSettings",
+                                        "maxConcurrentConnections": 5,
+                                        "recursive": true,
+                                        "deleteFilesAfterCompletion": true
+                                    },
+                                    "formatSettings": {
+                                        "type": "BinaryReadSettings"
+                                    },
+                                    "recursive": false
+                                },
+                                "sink": {
+                                    "type": "BinarySink",
+                                    "storeSettings": {
+                                        "type": "AzureDataLakeStoreWriteSettings",
+                                        "maxConcurrentConnections": 5
+                                    }
+                                },
+                                "enableStaging": false,
+                                "dataIntegrationUnits": 0
+                            },
+                            "inputs": [
+                                {
+                                    "referenceName": "BLOB_SOURCE_FILE_BINARY",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "CONTAINER": "landing-zone",
+                                        "DIRECTORY": "currency_exchange_rate",
+                                        "FILENAME": {
+                                            "value": "@replace(item().name,' ','')",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "referenceName": "ADL_DIRECTORY_BINARY",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "FolderPath": "data/governed/l0/xefile_currency_exchange_rate/file/inbound/",
+                                        "Directory": {
+                                            "value": "/",
+                                            "type": "Expression"
+                                        },
+                                        "filename": {
+                                            "value": "@replace(item().name,' ','')",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "XE_L0_L1",
+                "type": "DatabricksSparkJar",
+                "dependsOn": [
+                    {
+                        "activity": "MOVE_FILES_TO_L0",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.03:00:00",
+                    "retry": 2,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "mainClassName": {
+                        "value": "@pipeline().parameters.MAIN_CLASS",
+                        "type": "Expression"
+                    },
+                    "libraries": [
+                        {
+                            "jar": "@pipeline().parameters.JAR"
+                        }
+                    ]
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "SparkJobs": "GenericPassThroughBatchJob.XEFILE_CURRENCY_EXCHANGE_RATE_L1",
+                        "SparkConfig": {
+                            "value": "@pipeline().parameters.XE_FILE_SPARK_CONFIG",
+                            "type": "Expression"
+                        },
+                        "InputFileNamePattern": "defaultInputFileNamePattern",
+                        "OuputFileNamePartition": "defaultOutputFileName",
+                        "SecondaryPartition": "defaultSecondaryPartition",
+                        "NumberOfPartitions": 0,
+                        "MaxRatePerPartition": 0,
+                        "MinRatePerPartition": 1,
+                        "GracefulShutdown": "true",
+                        "ClientID": "defaultClientID",
+                        "ClientKey": "defaultClientKey",
+                        "ValutBaseUrl": "defaultValutBaseUrl",
+                        "UserNameKey": "defaultUserNameKey",
+                        "PasswordKey": "defaultPasswordKey",
+                        "MinWorker": 1,
+                        "MaxWorker": 2,
+                        "BatchDuration": 3000,
+                        "TimeOut": 900000,
+                        "BroadCastTimeOut": 300,
+                        "ClusterVersion": "6.4.x-esr-scala2.11",
+                        "JobTag": "defaultTag",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "ConceptUpper": "defaultConceptUpper",
+                        "ConceptLower": "defaultConceptLower",
+                        "JdbcURL": "defaultJdbcUrl",
+                        "KafkaDc1Nodes": "defaultDC1",
+                        "KafkaDc2Nodes": "defaultDC2",
+                        "KafkaTopics": "defaultKafkaTopics",
+                        "KafkaGroupId": "defaultKafkaGroupId",
+                        "TopNCategoryPrimaryOnly": "true",
+                        "TopNCategoryBackfill": "true",
+                        "JavaOptions": "-Xss1g",
+                        "BlocksizeMemory": "1g",
+                        "AlsAlpha": 40,
+                        "AlsRegularization": 0.1,
+                        "AlsRank": 32,
+                        "AlsRatingsPartition": 64,
+                        "AlsUserItemBlocksCount": 64,
+                        "AlsItemItemPartitions": 64,
+                        "AlsItemitemAccuracyThreshold": 0.2,
+                        "COVReportDays": "defaultDays",
+                        "COVInputFilePath": "defaultInPath",
+                        "COVDistList": "defaultMail@wsgc.com",
+                        "COVSMTPServer": "defaultSMTP",
+                        "COVOutputReportPath": "defaultOutPath",
+                        "COVCubePath": "defaultCubePath",
+                        "TmsType": "defaultTMSType",
+                        "PrimaryKey": "defaultKey",
+                        "Stage1": "defaultStage",
+                        "Target": "defaultTarget",
+                        "OldEventsPath": "defaultOldEventsPath",
+                        "NewEventsPath": "defaultNewEventsPath",
+                        "FirstSnapShotEvents": "defaultEvents",
+                        "FirstSnapShotoldEvents": "defaultEvents",
+                        "Schema": "defaultSchema",
+                        "BackFilingQuerypath": "defaultQuery",
+                        "StageDmlQuery": "defaultQuery",
+                        "DataframeKey": "defaultDFKey",
+                        "ShufflePartition": 200,
+                        "BroadcastJoinThreshold": 10485760,
+                        "SnowflakeUserNameKey": "defaultUserNameKey",
+                        "SnowflakePasswordKey": "defaultPasswordKey"
+                    }
+                }
+            },
+            {
+                "name": "XE_L1_L2_TRANSFORMATION",
+                "type": "DatabricksNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "XE_L0_L1",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.03:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "notebookPath": "/Users/msurnam@wsgc.com/2020/XE_CURRENCY_EXCHANGE_RATE_LANDING_TABLE"
+                },
+                "linkedServiceName": {
+                    "referenceName": "DBFS_Dynamic_Notebook",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "ClusterVersion": "6.4.x-esr-scala2.11",
+                        "ClusterNodeType": "Standard_DS3_v2",
+                        "ClusterDriverNodeType": "Standard_DS3_v2",
+                        "LogPath": "defaultPath",
+                        "MinWorker": 1,
+                        "MaxWorker": 2,
+                        "JobTag": "XEFILE_CURRENCY_EXCHANGE_RATE",
+                        "conceptId": 0,
+                        "siteId": "siteId",
+                        "outputFileName": "outputFileName"
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "JAR": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/jars/673cc247_67c6_447c_8955_67e51237455e-big_analytics_generic_file_0_0_1_all_sales_Galileo-df963.jar"
+            },
+            "MAIN_CLASS": {
+                "type": "string",
+                "defaultValue": "com.wsgc.bigdata.SampleBatchAnalytics"
+            },
+            "Dependency_jar": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/jars/5630af36_b6b6_4f06_9696_70330fb5e47f-jdbc_oracle_hubble-3393d.jar"
+            },
+            "SPARK_JOB_L1": {
+                "type": "string",
+                "defaultValue": "GenericPassThroughBatchJob.exchange_currency_CND"
+            },
+            "SPARK_CONFIG": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/tables/config/currency_rates/config_rms_currency_rates_Exchange_l2_Hubble_2.json"
+            },
+            "SPARK_JOB_L2": {
+                "type": "string",
+                "defaultValue": "GenericPassThroughBatchJob.Excha_Curre_CND_L2"
+            },
+            "CLIENT_ID": {
+                "type": "string",
+                "defaultValue": "a775e1b6-796d-49aa-b4ae-c478d7892f38"
+            },
+            "CLIENT_KEY": {
+                "type": "string",
+                "defaultValue": "6bMa+_SX@XuG?MM3fzxL5o7Q_KW1=*jt"
+            },
+            "VAULT_BASE_URL": {
+                "type": "string",
+                "defaultValue": "https://prod-edap-key-vault.vault.azure.net"
+            },
+            "USER_NAME_KEY": {
+                "type": "string",
+                "defaultValue": "RMS-ORACLE-UserKey"
+            },
+            "PASSWORD_KEY": {
+                "type": "string",
+                "defaultValue": "RMS-ORACLE-PassKey"
+            },
+            "L1_PATH": {
+                "type": "string",
+                "defaultValue": "/data/governed/l1/rms/location/table/inbound/currency_rates"
+            },
+            "L1_CONFIG": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/tables/config/currency_rates/currency_exchange_rate_config_l1.json"
+            },
+            "L2_CONFIG": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/tables/config/currency_rates/currency_exchange_rate_config_l2.json"
+            },
+            "STERLING_JDBC_URL": {
+                "type": "string",
+                "defaultValue": "jdbc:ns://3572911.connect.api.netsuite.com:1708;ServerDataSource=NetSuite.com; Encrypted=1; NegotiateSSLClose=false; CustomProperties=(AccountID=3572911;RoleID=3)"
+            },
+            "STERLING_PASSWORD_KEY": {
+                "type": "string",
+                "defaultValue": "Net-Suite-PassKey"
+            },
+            "STERLING_USER_NAME_KEY": {
+                "type": "string",
+                "defaultValue": "Net-Suite-UserKey"
+            },
+            "INGEST_ETL_JAR": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/jars/89af27f8_dada_4f24_bf77_258621a542c6-big_analytics_generic_ingestion_Pythagoras.jar"
+            },
+            "ODBC_JAR": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/tables/jars/NQjc.jar"
+            },
+            "NS_VAULT_BASE_URL": {
+                "type": "string",
+                "defaultValue": "https://prod-edap-key-vault.vault.azure.net"
+            },
+            "NS_CLIENT_ID": {
+                "type": "string",
+                "defaultValue": "a775e1b6-796d-49aa-b4ae-c478d7892f38"
+            },
+            "NS_CLIENT_KEY": {
+                "type": "string",
+                "defaultValue": "6bMa+_SX@XuG?MM3fzxL5o7Q_KW1=*jt"
+            },
+            "SNOFLK_CONFIG": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/tables/config/currency_rates/ns_rms_currency_exchange_rate_snoflk.json"
+            },
+            "SNOWFLK_JOB": {
+                "type": "string",
+                "defaultValue": "GenericPassThroughBatchJob.NS_RMS_CURRENCY_EXCHANGE_RATE_SNOFLK_L2"
+            },
+            "SNOFLK_USER_KEY": {
+                "type": "string",
+                "defaultValue": "ADF-SnowFlake-Userkey"
+            },
+            "SNOFLK_PASSKEY": {
+                "type": "string",
+                "defaultValue": "ADF-SnowFlake-PassKey"
+            },
+            "L2_NS_RMS_JOB": {
+                "type": "string",
+                "defaultValue": "GenericPassThroughBatchJob.RMS_NS_CURRENCY_EXCHANGE_RATE_L2"
+            },
+            "L2_NS_RMS_CONFIG": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/tables/config/currency_rates/ns_rms_currency_exchange_rate_config_l2.json"
+            },
+            "SQL_BROADCAST_TIMEOUT": {
+                "type": "string",
+                "defaultValue": "36000"
+            },
+            "XE_FILE_SPARK_CONFIG": {
+                "type": "string",
+                "defaultValue": "dbfs:/FileStore/tables/config/currency_rates/xe_currency_exchange_rate_l0_l1.json"
+            }
+        },
+        "folder": {
+            "name": "RMS"
+        },
+        "annotations": [],
+        "lastPublishTime": "2021-11-11T06:00:32Z"
+    },
+    "type": "Microsoft.DataFactory/factories/pipelines"
+}
