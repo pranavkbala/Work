@@ -1,0 +1,298 @@
+{
+    "transformations": [
+        {
+			"transformType": "dropDuplicates",
+			"columnMapping": [
+                {
+                    "sortProperties": {
+                        "LastUpdatedDateTime": "desc"
+                    },
+                    "groupKeys": [
+				        "Concept","ItemCode","SiteCode","Week"
+				    ]
+                }
+            ]
+		},
+		{
+            "transformType": "mapping",
+            "columnMapping": [
+                {
+                    "sourceCol": "LOCATION_ITEM_INV_FCST_WEEK_AGG_KEY",
+                    "targetCol": "LOCATION_ITEM_INV_FCST_WEEK_AGG_KEY"
+                },
+                {
+                    "sourceCol": "LOCATION_ITEM_INV_FCST_WEEK_AGG_ID",
+                    "targetCol": "LOCATION_ITEM_INV_FCST_WEEK_AGG_ID"
+                },
+                {
+                    "sourceCol": "Concept",
+                    "targetCol": "CONCEPT_CD"
+                },
+                {
+                    "sourceCol": "LOCATION_KEY",
+                    "targetCol": "LOCATION_KEY"
+                },
+                {
+                    "sourceCol": "SiteCode",
+                    "targetCol": "LOCATION_ID"
+                },
+                {
+                    "sourceCol": "ITEM_KEY",
+                    "targetCol": "ITEM_KEY"
+                },
+                {
+                    "sourceCol": "ItemCode",
+                    "targetCol": "ITEM_ID"
+                },
+                {
+                    "sourceCol": "ITEM_NAME",
+                    "targetCol": "ITEM_NAME"
+                },
+                {
+                    "sourceCol": "MARKET_CD",
+                    "targetCol": "MARKET_CD"
+                }, 
+                {
+                    "sourceCol": "INV_FCST_ITEM_PLACEHOLDER_KEY",
+                    "targetCol": "INV_FCST_ITEM_PLACEHOLDER_KEY"
+                }, 
+                {
+                    "sourceCol": "INV_FCST_ITEM_PLACEHOLDER_ID",
+                    "targetCol": "INV_FCST_ITEM_PLACEHOLDER_ID"
+                },  
+                {
+                    "sourceCol": "FISCAL_WEEK_KEY",
+                    "targetCol": "FISCAL_WEEK_KEY"
+                },
+                {
+                    "sourceCol": "FISCAL_WEEK_NBR",
+                    "targetCol": "FISCAL_WEEK_NBR"
+                },
+                {
+                    "sourceCol": "Week",
+                    "targetCol": "FISCAL_WEEK_START_DT"
+                },
+                {
+                    "sourceCol": "FISCAL_WEEK_END_DT",
+                    "targetCol": "FISCAL_WEEK_END_DT"
+                },
+                {
+                    "sourceCol": "LastUpdatedDateTime",
+                    "targetCol": "FIRST_EFFECTIVE_TS"
+                },
+                {
+                    "sourceCol": "BOPUs",
+                    "targetCol": "PROJECTED_STOCK_ON_HAND_QTY"
+                },
+                {
+                    "sourceCol": "ConstrainedDemandUs",
+                    "targetCol": "CONSTRAINED_DEMAND_UNITS_CNT"
+                },
+                {
+                    "sourceCol": "EffectiveSafetyStockUs",
+                    "targetCol": "EFFECTIVE_SAFETY_STOCK_UNITS_CNT"
+                },
+                {
+                    "sourceCol": "LostSalesUs",
+                    "targetCol": "LOST_SALES_UNITS_CNT"
+                },
+                {
+                    "sourceCol": "MinSS",
+                    "targetCol": "MIN_SAFETY_STOCK_UNITS_CNT"
+                },
+                {
+                    "sourceCol": "ModelStockUs",
+                    "targetCol": "MODEL_STOCK_UNITS_CNT"
+                },
+                {
+                    "sourceCol": "PreAuthorizedOrderUs",
+                    "targetCol": "PRE_AUTHORIZED_ORDER_CNT"
+                },
+                {
+                    "sourceCol": "RecommendedOrderUs",
+                    "targetCol": "RECOMMENDED_ORDER_UNITS_CNT"
+                },
+                {
+                    "sourceCol": "ExpediteUs",
+                    "targetCol": "EXPEDITE_UNITS_CNT"
+                },
+                {
+                    "sourceCol": "MaxStockDays",
+                    "targetCol": "MAX_STOCK_DAYS_CNT"
+                },
+                {
+                    "sourceCol": "MaxStockUs",
+                    "targetCol": "MAX_STOCK_UNITS_CNT"
+                },
+                {
+                    "sourceCol": "ShortfallUs",
+                    "targetCol": "SHORT_FALL_UNITS_CNT"
+                },
+                {
+                    "sourceCol": "StockOutUs",
+                    "targetCol": "STOCK_OUT_UNITS_CNT"
+                },
+                {
+                    "sourceCol": "SurplusUs",
+                    "targetCol": "SURPLUS_UNITS_CNT"
+                },
+                {
+                    "sourceCol": "ReservedStockUs",
+                    "targetCol": "RESERVED_STOCK_UNITS_CNT"
+                },
+                {
+                    "sourceCol": "RecommendedSafetyStockUs",
+                    "targetCol": "RECOMMENDED_SAFETY_STOCK_UNITS_CNT"
+                },
+                {
+                    "sourceCol": "OptimalAllocationUs",
+                    "targetCol": "OPTIMAL_ALLOCATION_UNIT_CNT"
+                },
+                {
+                    "sourceCol": "DCReservedUs",
+                    "targetCol": "DC_RESERVED_UNIT_CNT"
+                },
+                {
+                    "sourceCol": "AllocatedInTransitUs",
+                    "targetCol": "ALLOCATED_IN_TRANSIT_UNIT_CNT"
+                },
+                {
+                    "sourceCol": "AllocatedUs",
+                    "targetCol": "ALLOCATED_UNIT_CNT"
+                },
+                {
+                    "sourceCol": "PreAllocatedUs",
+                    "targetCol": "PRE_ALLOCATED_UNIT_CNT"
+                },  
+                {
+                    "default": "MAX_EFFECTIVE_TS",
+                    "targetCol": "LAST_EFFECTIVE_TS"
+                },
+                {
+                    "sourceCol": "PARENT_ITEM_PLACEHOLDER_CD",
+                    "targetCol": "PARENT_ITEM_PLACEHOLDER_CD"
+                }, 
+                {
+                    "sourceCol": "ITEM_PLACEHOLDER_DESC",
+                    "targetCol": "ITEM_PLACEHOLDER_DESC"
+                }, 
+                {
+                    "sourceCol": "ITEM_PLACEHOLDER_DEPT_DESC",
+                    "targetCol": "ITEM_PLACEHOLDER_DEPT_DESC"
+                },
+                {
+                    "dateTimeAttributes": {
+                        "currDateTime": "current_timestamp",
+                        "targetColdateTimeFormats": "yyyy-MM-dd HH:mm:ss.000"
+                    },
+                    "targetCol": "INSERT_TS"
+                },
+                {
+                    "dateTimeAttributes": {
+                        "currDateTime": "current_timestamp",
+                        "targetColdateTimeFormats": "yyyy-MM-dd HH:mm:ss.000"
+                    },
+                    "targetCol": "UPDATE_TS"
+                }
+                
+            ]
+        },
+        {
+            "transformType": "join",
+            "joinAtrributes": [
+                {
+                    "dataFrameName": "L2_LOCATION",
+                    "joinConditions": "L2_LOCATION.LOCATION_ID  = LPAD(TRIM(CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.LOCATION_ID as STRING)),GREATEST(LENGTH(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.LOCATION_ID),4),0)  AND L2_LOCATION.LAST_EFFECTIVE_TS = '9999-12-31T23:59:59.000+0000'",
+                    "joinType": "leftouter"
+                },
+                {
+                    "dataFrameName": "L2_ITEM",
+                    "joinConditions": "L2_ITEM.ITEM_ID = TRIM(CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.ITEM_ID AS STRING))  AND L2_ITEM.MARKET_CD='USA' AND L2_ITEM.LAST_EFFECTIVE_TS = '9999-12-31T23:59:59.000+0000'",
+                    "joinType": "leftouter"
+                },
+                {
+                    "dataFrameName": "L2_PH_ITEM",
+                    "joinConditions": "L2_PH_ITEM.INV_FCST_ITEM_PLACEHOLDER_ID = TRIM(CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.ITEM_ID AS STRING))  AND L2_PH_ITEM.LAST_EFFECTIVE_TS = '9999-12-31T23:59:59.000+0000'",
+                    "joinType": "leftouter"
+                },
+                {
+                    "dataFrameName": "L2_FISCAL_WEEK",
+                    "joinConditions": "L2_FISCAL_WEEK.FISCAL_WEEK_START_DT = TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.FISCAL_WEEK_START_DT AS STRING),'MM/dd/yyyy')))",
+                    "joinType": "leftouter"
+                },
+                {
+                    "dataFrameName": "L2_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL",
+                    "joinConditions": "L2_FISCAL_WEEK.FISCAL_WEEK_KEY = L2_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL.FISCAL_WEEK_KEY AND L2_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL.CONCEPT_CD = L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.CONCEPT_CD AND L2_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL.ITEM_ID = L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.ITEM_ID AND L2_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL.LOCATION_ID = LPAD(TRIM(CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.LOCATION_ID as STRING)),GREATEST(LENGTH(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.LOCATION_ID),4),0)  AND L2_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL.LAST_EFFECTIVE_TS = '9999-12-31T23:59:59.000+0000'",
+                    "joinType": "leftouter"
+                }
+            ],
+            "selectExprs": [
+                "COALESCE(L2_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL.LOCATION_ITEM_INV_FCST_WEEK_AGG_KEY ,-1)AS LOCATION_ITEM_INV_FCST_WEEK_AGG_KEY",
+                "CONCAT(TRIM(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.CONCEPT_CD),' ',LPAD(TRIM(CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.LOCATION_ID as STRING)),GREATEST(LENGTH(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.LOCATION_ID),4),0),' ',TRIM(CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.ITEM_ID AS STRING)),' ',L2_FISCAL_WEEK.FISCAL_WEEK_KEY) AS LOCATION_ITEM_INV_FCST_WEEK_AGG_ID",
+                "L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.CONCEPT_CD AS CONCEPT_CD",
+                "COALESCE(CAST(L2_LOCATION.LOCATION_KEY as BIGINT),-1) AS LOCATION_KEY",
+                "LPAD(TRIM(CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.LOCATION_ID as STRING)),GREATEST(LENGTH(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.LOCATION_ID),4),0) AS LOCATION_ID",
+                "COALESCE(CAST(L2_ITEM.ITEM_KEY as BIGINT),-1) AS ITEM_KEY",
+                "TRIM(CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.ITEM_ID AS STRING)) AS ITEM_ID",
+                "TRIM(L2_ITEM.ITEM_NAME) AS ITEM_NAME",
+                "TRIM(L2_ITEM.MARKET_CD) AS MARKET_CD",
+                "COALESCE(L2_PH_ITEM.INV_FCST_ITEM_PLACEHOLDER_KEY,-1) AS INV_FCST_ITEM_PLACEHOLDER_KEY",
+                "L2_PH_ITEM.INV_FCST_ITEM_PLACEHOLDER_ID AS INV_FCST_ITEM_PLACEHOLDER_ID", 
+                "COALESCE(CAST(L2_FISCAL_WEEK.FISCAL_WEEK_KEY as BIGINT),-1) AS FISCAL_WEEK_KEY",
+                "COALESCE(L2_FISCAL_WEEK.FISCAL_WEEK_NBR,-1) AS FISCAL_WEEK_NBR",
+                "TO_DATE(FROM_UNIXTIME(UNIX_TIMESTAMP(CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.FISCAL_WEEK_START_DT AS STRING),'MM/dd/yyyy'))) AS FISCAL_WEEK_START_DT",
+                "L2_FISCAL_WEEK.FISCAL_WEEK_END_DT AS FISCAL_WEEK_END_DT",
+                "TIMESTAMP(FROM_UNIXTIME(UNIX_TIMESTAMP(cast(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.FIRST_EFFECTIVE_TS as STRING),'yyyyMMddHHmmss'))) AS FIRST_EFFECTIVE_TS",
+                "TIMESTAMP(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.LAST_EFFECTIVE_TS) AS LAST_EFFECTIVE_TS",
+                "L2_PH_ITEM.PARENT_ITEM_PLACEHOLDER_CD AS PARENT_ITEM_PLACEHOLDER_CD",
+                "L2_PH_ITEM.ITEM_PLACEHOLDER_DESC AS ITEM_PLACEHOLDER_DESC",
+                "L2_PH_ITEM.ITEM_PLACEHOLDER_DEPT_DESC AS ITEM_PLACEHOLDER_DEPT_DESC",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.PROJECTED_STOCK_ON_HAND_QTY  AS DECIMAL(15,4)) AS PROJECTED_STOCK_ON_HAND_QTY",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.CONSTRAINED_DEMAND_UNITS_CNT  AS DECIMAL(15,4)) AS CONSTRAINED_DEMAND_UNITS_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.EFFECTIVE_SAFETY_STOCK_UNITS_CNT  AS DECIMAL(15,4)) AS EFFECTIVE_SAFETY_STOCK_UNITS_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.LOST_SALES_UNITS_CNT  AS DECIMAL(15,4)) AS LOST_SALES_UNITS_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.MIN_SAFETY_STOCK_UNITS_CNT  AS DECIMAL(15,4)) AS MIN_SAFETY_STOCK_UNITS_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.MODEL_STOCK_UNITS_CNT  AS DECIMAL(15,4)) AS MODEL_STOCK_UNITS_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.PRE_AUTHORIZED_ORDER_CNT  AS DECIMAL(15,4)) AS PRE_AUTHORIZED_ORDER_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.RECOMMENDED_ORDER_UNITS_CNT  AS DECIMAL(15,4)) AS RECOMMENDED_ORDER_UNITS_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.EXPEDITE_UNITS_CNT  AS DECIMAL(15,4)) AS EXPEDITE_UNITS_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.MAX_STOCK_DAYS_CNT  AS DECIMAL(15,4)) AS MAX_STOCK_DAYS_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.MAX_STOCK_UNITS_CNT  AS DECIMAL(15,4)) AS MAX_STOCK_UNITS_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.SHORT_FALL_UNITS_CNT  AS DECIMAL(15,4)) AS SHORT_FALL_UNITS_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.STOCK_OUT_UNITS_CNT  AS DECIMAL(15,4)) AS STOCK_OUT_UNITS_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.SURPLUS_UNITS_CNT  AS DECIMAL(15,4)) AS SURPLUS_UNITS_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.RESERVED_STOCK_UNITS_CNT  AS DECIMAL(15,4)) AS RESERVED_STOCK_UNITS_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.RECOMMENDED_SAFETY_STOCK_UNITS_CNT  AS DECIMAL(15,4)) AS RECOMMENDED_SAFETY_STOCK_UNITS_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.OPTIMAL_ALLOCATION_UNIT_CNT  AS DECIMAL(15,4)) AS OPTIMAL_ALLOCATION_UNIT_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.DC_RESERVED_UNIT_CNT  AS DECIMAL(15,4)) AS DC_RESERVED_UNIT_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.ALLOCATED_IN_TRANSIT_UNIT_CNT  AS DECIMAL(15,4)) AS ALLOCATED_IN_TRANSIT_UNIT_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.ALLOCATED_UNIT_CNT  AS DECIMAL(15,4)) AS ALLOCATED_UNIT_CNT",
+                "CAST(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.PRE_ALLOCATED_UNIT_CNT  AS DECIMAL(15,4)) AS PRE_ALLOCATED_UNIT_CNT",
+                "TIMESTAMP(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.INSERT_TS) AS INSERT_TS",
+                "TIMESTAMP(L1_LOCATION_ITEM_INV_FCST_WEEK_AGG_IL_STG.UPDATE_TS) AS UPDATE_TS"
+            ]
+        },
+        {
+			"transformType": "dropDuplicates",
+			"columnMapping": [
+                {
+        			"sortProperties": {
+        				"LAST_EFFECTIVE_TS": "desc"
+        			},
+                    "groupKeys": [
+    				    "CONCEPT_CD","ITEM_ID","LOCATION_ID","FISCAL_WEEK_KEY"
+    				]
+    			}
+            ]
+		},
+		{
+            "transformType": "executeQuery",
+            "columnMapping": [
+                {
+                    "queryPath": "/dbfs/FileStore/tables/sql/je/locationItemInvFcstAgg/locationItemInvFcstAgg_surrogate_key_gen.sql",
+                    "tableName": "STG_TEMP_LOCATION_ITEM_INV_FCST_WEEK_AGG"
+                }
+            ]
+        }
+    ]
+}
