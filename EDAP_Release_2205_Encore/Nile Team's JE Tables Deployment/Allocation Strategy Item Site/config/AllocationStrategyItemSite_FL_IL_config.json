@@ -1,0 +1,206 @@
+{
+    "parallelism": 4,
+    "onJobFailure": "Fail",
+    "onEmptyDF": "Fail",
+    "ignoreInvalidRows": true,
+    "cleanColumnNames": true,
+    "jobs": [
+        {
+            "name": "GenericPassThroughBatchJob.JE_INV_FCST_ALLOCATION_STRATEGY_ITEM_SITE_FL_FILE_L1",
+            "description": "Full Load ingest JE INV_FCST_ALLOCATION_STRATEGY_ITEM_SITE file data for Mi9 to L1 in parquet/delta. FCA abbrevation to forcastChannelAttr",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "fileInputs": [
+                {
+                    "dataFrameName": "DF_FCA_DATA_L1",
+                    "generateCompletionFile": false,
+                    "loadCompletedFile": false,
+                    "header": true,
+                    "cleanColumnNames": true,
+                    "trimColumns": [],
+                    "delimiter": "|",
+                    "inferSchema": true,
+                    "format": "CSV",
+                    "path": "/mnt/data/governed/l0/je/AllocationStrategyItemSite/file/inbound/",
+                    "archivePath": "/mnt/data/governed/l0/je/AllocationStrategyItemSite/file/inbound_archive/"
+                }
+            ],
+            "fileOutputs": [
+                {
+                    "dataFrameName": "DF_FCA_DATA_L1",
+                    "format": "PARQUET",
+                    "path": "/mnt/data/governed/l1/je/AllocationStrategyItemSite/file/inbound/",
+                    "saveMode": "Overwrite"
+                }
+            ]
+        },
+        {
+            "name": "GenericPassThroughBatchJob.JE_INV_FCST_ALLOCATION_STRATEGY_ITEM_SITE_FL_FILE_L2",
+            "description": "Full Load ingest JE AllocationStrategyItemSite file data for Mi9 to L2 in delta. FCA abbrevation to ForcastChannelAttr",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "fileInputs": [
+                {
+                    "dataFrameName": "L1_INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY_STG",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/je/AllocationStrategyItemSite/file/inbound/"
+                }
+            ],
+            "transformDataInputs": [
+                {
+                    "dataFrameName": "L1_INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY_STG",
+                    "nestedStructure": "true",
+                    "transformationsPath": "/dbfs/FileStore/tables/config/je/AllocationStrategyItemSite/AllocationStrategyItemSite_transform_l1_l2.json"
+                }
+            ],
+            "deltaOutputs": [
+                {
+                    "OverwriteSchema": "true",
+                    "dataFrameName": "L1_INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY_STG",
+                    "dbName": "L2_STAGE",
+                    "queryPaths": [
+                        "/dbfs/FileStore/tables/sql/je/AllocationStrategyItemSite/AllocationStrategyItemSite_delete_data_fl.sql",
+                        "/dbfs/FileStore/tables/sql/je/AllocationStrategyItemSite/AllocationStrategyItemSite_merge_into_ndp.sql"
+                    ],
+                    "saveMode": "Overwrite",
+                    "tableName": "INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY_STG"
+                }
+            ]
+        },
+        {
+            "name": "GenericPassThroughBatchJob.JE_INV_FCST_ALLOCATION_STRATEGY_ITEM_SITE_FL_FILE_SNOWFLAKE",
+            "description": "JE_INV_FCST_ALLOCATION_STRATEGY_ITEM_SITE_FL table for Snowflake",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "deltaInputs": [
+                {
+                    "dataFrameName": "INV_FCST_ALLOCATION_STRATEGY_ITEM_SITE_FL_STG_DF",
+                    "dbName": "L2_ANALYTICS_TABLES",
+                    "tableName": "INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY"
+                }
+            ],
+            "snowflakeOutputs": [
+                {
+                    "dataFrameName": "INV_FCST_ALLOCATION_STRATEGY_ITEM_SITE_FL_STG_DF",
+                    "sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+                    "sfAccount": "williamssonoma",
+                    "keyVaultAuth": {
+                        "keyVaultParams": {
+                            "clientId": "${spark.wsgc.clientId}",
+                            "clientKey": "${spark.wsgc.clientkey}",
+                            "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+                            "usernameKey": "${spark.wsgc.usernamekey}",
+                            "passwordKey": "${spark.wsgc.passwordkey}"
+                        }
+                    },
+                    "sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+                    "saveMode": "Overwrite",
+                    "sfDatabase": "PROD_EDAP_STAGE_DB",
+                    "sfSchema": "PROD_EDAP_STAGE_TABLES",
+                    "tableName": "INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY_STAGE",
+                    "queryPaths": [
+                        "/dbfs/FileStore/tables/sql/je/AllocationStrategyItemSite/AllocationStrategyItemSite_FL_merge_into_sf.sql"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "GenericPassThroughBatchJob.JE_INV_FCST_ALLOCATION_STRATEGY_ITEM_SITE_IL_FILE_L1",
+            "description": "Incremental Load ingest JE INV_FCST_ALLOCATION_STRATEGY_ITEM_SITE file data for Mi9 to L1 in paquet/delta. FCA abbrevation to ForcastChannelAttr",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "fileInputs": [
+                {
+                    "dataFrameName": "DF_FCA_DATA_L1",
+                    "generateCompletionFile": false,
+                    "loadCompletedFile": false,
+                    "header": true,
+                    "cleanColumnNames": true,
+                    "trimColumns": [],
+                    "delimiter": "|",
+                    "inferSchema": true,
+                    "format": "CSV",
+                    "path": "/mnt/data/governed/l0/je/AllocationStrategyItemSite/file/inbound/",
+                    "archivePath": "/mnt/data/governed/l0/je/AllocationStrategyItemSite/file/inbound_archive/"
+                }
+            ],
+            "fileOutputs": [
+                {
+                    "dataFrameName": "DF_FCA_DATA_L1",
+                    "format": "PARQUET",
+                    "path": "/mnt/data/governed/l1/je/AllocationStrategyItemSite/file/inbound/",
+                    "saveMode": "Overwrite"
+                }
+            ]
+        },
+        {
+            "name": "GenericPassThroughBatchJob.JE_INV_FCST_ALLOCATION_STRATEGY_ITEM_SITE_IL_FILE_L2",
+            "description": "L2 JE_INV_FCST_ALLOCATION_STRATEGY_ITEM_SITE_IL Incremental Load Location",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "fileInputs": [
+                {
+                    "dataFrameName": "L1_INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY_STG",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/je/AllocationStrategyItemSite/file/inbound/"
+                }
+            ],
+            "transformDataInputs": [
+                {
+                    "dataFrameName": "L1_INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY_STG",
+                    "nestedStructure": "true",
+                    "transformationsPath": "/dbfs/FileStore/tables/config/je/AllocationStrategyItemSite/AllocationStrategyItemSite_transform_l1_l2.json"
+                }
+            ],
+            "deltaOutputs": [
+                {
+                    "OverwriteSchema": "true",
+                    "dataFrameName": "L1_INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY_STG",
+                    "dbName": "L2_STAGE",
+                    "queryPaths": [
+                        "/dbfs/FileStore/tables/sql/je/AllocationStrategyItemSite/AllocationStrategyItemSite_merge_into_ndp.sql"
+                    ],
+                    "saveMode": "Overwrite",
+                    "tableName": "INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY_STG"
+                }
+            ]
+        },
+        {
+            "name": "GenericPassThroughBatchJob.JE_INV_FCST_ALLOCATION_STRATEGY_ITEM_SITE_IL_FILE_SNOWFLAKE",
+            "description": "JE_INV_FCST_ALLOCATION_STRATEGY_ITEM_SITE_IL table for Snowflake",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "deltaInputs": [
+                {
+                    "dataFrameName": "INV_FCST_ALLOCATION_STRATEGY_ITEM_SITE_IL_STG_DF",
+                    "dbName": "L2_STAGE",
+                    "tableName": "INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY_STG"
+                }
+            ],
+            "snowflakeOutputs": [
+                {
+                    "dataFrameName": "INV_FCST_ALLOCATION_STRATEGY_ITEM_SITE_IL_STG_DF",
+                    "sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+                    "sfAccount": "williamssonoma",
+                    "keyVaultAuth": {
+                        "keyVaultParams": {
+                            "clientId": "${spark.wsgc.clientId}",
+                            "clientKey": "${spark.wsgc.clientkey}",
+                            "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+                            "usernameKey": "${spark.wsgc.usernamekey}",
+                            "passwordKey": "${spark.wsgc.passwordkey}"
+                        }
+                    },
+                    "sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+                    "saveMode": "Overwrite",
+                    "sfDatabase": "PROD_EDAP_STAGE_DB",
+                    "sfSchema": "PROD_EDAP_STAGE_TABLES",
+                    "tableName": "INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY_STAGE",
+                    "queryPaths": [
+                        "/dbfs/FileStore/tables/sql/je/AllocationStrategyItemSite/AllocationStrategyItemSite_IL_merge_into_sf.sql"
+                    ]
+                }
+            ]
+        }
+    ]
+}

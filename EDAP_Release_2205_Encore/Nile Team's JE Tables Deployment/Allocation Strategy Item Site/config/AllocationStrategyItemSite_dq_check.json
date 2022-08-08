@@ -1,0 +1,53 @@
+{
+   "qcId": "INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY",
+   "description": "INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY QC check",
+   "appQueries": [
+      {
+         "queryId": 1,
+         "description": "L2-INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY Null Check",
+         "source": {
+            "query": "select cast(count(*) as double) from L2_ANALYTICS_TABLES.INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY where CONCEPT_CD IS NULL and ITEM_ID IS NULL and LOCATION_ID IS NULL"
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      },
+      {
+         "queryId": 2,
+         "description": "L2-INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY Duplicate Key Check",
+         "source": {
+            "query": "select cast(count(*) as double) from (SELECT INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY_KEY FROM L2_ANALYTICS_TABLES.INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY WHERE LAST_EFFECTIVE_TS = '9999-12-31T23:59:59.000+0000' GROUP BY INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY_KEY HAVING COUNT(*) > 1)"
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      },
+      {
+         "queryId": 3,
+         "description": "INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY Snowflake-Delta Count Check",
+         "source": {
+            "system": "snowflake",
+            "query": "select cast(count(*) as double) from  PROD_EDAP_ANALYTICS_DB.PROD_EDAP_ANALYTICS_TABLES.INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY",
+            "keyVaultAuth": {
+               "keyVaultParams": {
+                  "clientId": "${spark.wsgc.clientId}",
+                  "clientKey": "${spark.wsgc.clientkey}",
+                  "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+                  "usernameKey": "${spark.wsgc.usernamekey}",
+                  "passwordKey": "${spark.wsgc.passwordkey}"
+               }
+            },
+            "snowflake": {
+               "sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+               "sfAccount": "williamssonoma",
+               "sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+               "sfDatabase": "PROD_EDAP_ANALYTICS_DB",
+               "sfSchema": "PROD_EDAP_ANALYTICS_TABLES"
+            }
+         },
+         "target": {
+            "query": "select cast(count(*) as double) from L2_ANALYTICS_TABLES.INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY"
+         }
+      }
+   ]
+}

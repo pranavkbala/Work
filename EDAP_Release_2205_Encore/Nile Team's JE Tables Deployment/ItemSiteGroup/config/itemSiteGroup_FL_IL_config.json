@@ -1,0 +1,224 @@
+{
+    "parallelism": 1,
+    "onJobFailure": "Fail",
+    "onEmptyDF": "Fail",
+    "ignoreInvalidRows": true,
+    "cleanColumnNames": true,
+    "jobs": [
+        {
+            "name": "GenericPassThroughBatchJob.JE_INV_FCST_LOCATION_ITEM_GROUP_FL_FILE_L1",
+            "description": "Full Load ingest JE INV_FCST_LOCATION_ITEM_GROUP file data for Mi9 to L1 in paquet/delta. FCA abbrevation to forcastChannelAttr",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "fileInputs": [
+                {
+                    "dataFrameName": "DF_FCA_DATA_L1",
+                    "generateCompletionFile": false,
+                    "loadCompletedFile": false,
+                    "header": true,
+                    "cleanColumnNames": true,
+                    "trimColumns": [],
+                    "delimiter": "|",
+                    "inferSchema": true,
+                    "format": "CSV",
+                    "path": "/mnt/data/governed/l0/je/itemSiteGroup/file/inbound/",
+                    "archivePath": "/mnt/data/governed/l0/je/itemSiteGroup/file/inbound_archive/"
+                }
+            ],
+            "fileOutputs": [
+                {
+                    "dataFrameName": "DF_FCA_DATA_L1",
+                    "format": "PARQUET",
+                    "path": "/mnt/data/governed/l1/je/itemSiteGroup/file/inbound/",
+                    "saveMode": "Overwrite"
+                }
+            ]
+        },
+        {
+            "name": "GenericPassThroughBatchJob.JE_INV_FCST_LOCATION_ITEM_GROUP_FL_FILE_L2",
+            "description": "Full Load ingest JE INV_FCST_LOCATION_ITEM_GROUP file data for Mi9 to L2 in delta. FCA abbrevation to ForcastChannelAttr",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "fileInputs": [
+                {
+                    "dataFrameName": "L1_INV_FCST_LOCATION_ITEM_GROUP_FL_STG",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/je/itemSiteGroup/file/inbound/"
+                },
+                {
+                    "dataFrameName": "L2_PH_ITEM",
+                    "format": "DELTA",
+                    "path": "dbfs:/mnt/data/governed/l2/analytics/je/placeholderitem"
+                }
+            ],
+            "transformDataInputs": [
+                {
+                    "dataFrameName": "L1_INV_FCST_LOCATION_ITEM_GROUP_FL_STG",
+                    "nestedStructure": "true",
+                    "transformationsPath": "/dbfs/FileStore/tables/config/je/itemSiteGroup/itemSiteGroup_FL_transform_l1_l2.json"
+                }
+            ],
+            "deltaOutputs": [
+                {
+                    "OverwriteSchema": "true",
+                    "dataFrameName": "L1_INV_FCST_LOCATION_ITEM_GROUP_FL_STG",
+                    "dbName": "L2_STAGE",
+                    "queryPaths": [
+                        "/dbfs/FileStore/tables/sql/je/itemSiteGroup/itemSiteGroup_delete_data_fl.sql",
+                        "/dbfs/FileStore/tables/sql/je/itemSiteGroup/itemSiteGroup_merge_into_ndp.sql"
+                    ],
+                    "saveMode": "Overwrite",
+                    "tableName": "INV_FCST_LOCATION_ITEM_GROUP_STG"
+                }
+            ]
+        },
+        {
+            "name": "GenericPassThroughBatchJob.JE_INV_FCST_LOCATION_ITEM_GROUP_FL_FILE_SNOWFLAKE",
+            "description": "JE_INV_FCST_LOCATION_ITEM_GROUP_FL table for Snowflake",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "deltaInputs": [
+                {
+                    "dataFrameName": "INV_FCST_LOCATION_ITEM_GROUP_FL_STG_DF",
+                    "dbName": "L2_STAGE",
+                    "tableName": "INV_FCST_LOCATION_ITEM_GROUP_STG"
+                }
+            ],
+            "snowflakeOutputs": [
+                {
+                    "dataFrameName": "INV_FCST_LOCATION_ITEM_GROUP_FL_STG_DF",
+                    "sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+                    "sfAccount": "williamssonoma",
+                    "keyVaultAuth": {
+                        "keyVaultParams": {
+                            "clientId": "${spark.wsgc.clientId}",
+                            "clientKey": "${spark.wsgc.clientkey}",
+                            "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+                            "usernameKey": "${spark.wsgc.usernamekey}",
+                            "passwordKey": "${spark.wsgc.passwordkey}"
+                        }
+                    },
+                    "sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+                    "saveMode": "Overwrite",
+                    "sfDatabase": "PROD_EDAP_STAGE_DB",
+                    "sfSchema": "PROD_EDAP_STAGE_TABLES",
+                    "tableName": "INV_FCST_LOCATION_ITEM_GROUP_STAGE",
+                    "queryPaths": [
+                        "/dbfs/FileStore/tables/sql/je/itemSiteGroup/itemSiteGroup_delete_data_sf.sql",
+                        "/dbfs/FileStore/tables/sql/je/itemSiteGroup/itemSiteGroup_IL_merge_into_sf.sql",
+                        "/dbfs/FileStore/tables/sql/je/itemSiteGroup/itemSiteGroup_pivot_view_update.sql"
+                    ]
+                }
+            ]
+        },
+
+
+
+
+        {
+            "name": "GenericPassThroughBatchJob.JE_INV_FCST_LOCATION_ITEM_GROUP_IL_FILE_L1",
+            "description": "Incremental Load ingest JE INV_FCST_LOCATION_ITEM_GROUP file data for Mi9 to L1 in paquet/delta. FCA abbrevation to ForcastChannelAttr",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "fileInputs": [
+                {
+                    "dataFrameName": "DF_FCA_DATA_L1",
+                    "generateCompletionFile": false,
+                    "loadCompletedFile": false,
+                    "header": true,
+                    "cleanColumnNames": true,
+                    "trimColumns": [],
+                    "delimiter": "|",
+                    "inferSchema": true,
+                    "format": "CSV",
+                    "path": "/mnt/data/governed/l0/je/itemSiteGroup/file/inbound/",
+                    "archivePath": "/mnt/data/governed/l0/je/itemSiteGroup/file/inbound_archive/"
+                }
+            ],
+            "fileOutputs": [
+                {
+                    "dataFrameName": "DF_FCA_DATA_L1",
+                    "format": "PARQUET",
+                    "path": "/mnt/data/governed/l1/je/itemSiteGroup/file/inbound/",
+                    "saveMode": "Overwrite"                                                                                                       
+                }
+            ]
+        },
+        {
+            "name": "GenericPassThroughBatchJob.JE_INV_FCST_LOCATION_ITEM_GROUP_IL_FILE_L2",
+            "description": "L2 JE INV_FCST_LOCATION_ITEM_GROUP Incremental Load Location",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "fileInputs": [
+                {
+                    "dataFrameName": "L1_INV_FCST_LOCATION_ITEM_GROUP_IL_STG",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/je/itemSiteGroup/file/inbound/"
+                },
+                {
+                    "dataFrameName": "L2_PH_ITEM",
+                    "format": "DELTA",
+                    "path": "dbfs:/mnt/data/governed/l2/analytics/je/placeholderitem"
+                }
+            ],
+            "transformDataInputs": [
+                {
+                    "dataFrameName": "L1_INV_FCST_LOCATION_ITEM_GROUP_IL_STG",
+                    "nestedStructure": "true",
+                    "transformationsPath": "/dbfs/FileStore/tables/config/je/itemSiteGroup/itemSiteGroup_IL_transform_l1_l2.json"
+                }
+            ],
+            "deltaOutputs": [
+                {
+                    "OverwriteSchema": "true",
+                    "dataFrameName": "L1_INV_FCST_LOCATION_ITEM_GROUP_IL_STG",
+                    "dbName": "L2_STAGE",
+                    "queryPaths": [
+                        "/dbfs/FileStore/tables/sql/je/itemSiteGroup/itemSiteGroup_merge_into_ndp.sql"
+                    ],
+                    "saveMode": "Overwrite",
+                    "tableName": "INV_FCST_LOCATION_ITEM_GROUP_STG"
+                }
+            ]
+        },
+        {
+            "name": "GenericPassThroughBatchJob.JE_INV_FCST_LOCATION_ITEM_GROUP_IL_FILE_SNOWFLAKE",
+            "description": "INV_FCST_LOCATION_ITEM_GROUP table for Snowflake",
+            "ignoreInvalidRows": true,
+            "cleanColumnNames": true,
+            "deltaInputs": [
+                {
+                    "dataFrameName": "INV_FCST_LOCATION_ITEM_GROUP_STG_DF",
+                    "dbName": "L2_STAGE",
+                    "tableName": "INV_FCST_LOCATION_ITEM_GROUP_STG"
+                }
+            ],
+            "snowflakeOutputs": [
+                {
+                    "dataFrameName": "INV_FCST_LOCATION_ITEM_GROUP_STG_DF",
+                    "sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+                    "sfAccount": "williamssonoma",
+                    "keyVaultAuth": {
+                        "keyVaultParams": {
+                            "clientId": "${spark.wsgc.clientId}",
+                            "clientKey": "${spark.wsgc.clientkey}",
+                            "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+                            "usernameKey": "${spark.wsgc.usernamekey}",
+                            "passwordKey": "${spark.wsgc.passwordkey}"
+                        }
+                    },
+                    "sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+                    "saveMode": "Overwrite",
+                    "sfDatabase": "PROD_EDAP_STAGE_DB",
+                    "sfSchema": "PROD_EDAP_STAGE_TABLES",
+                    "tableName": "INV_FCST_LOCATION_ITEM_GROUP_STAGE",
+                    "queryPaths": [
+                        "/dbfs/FileStore/tables/sql/je/itemSiteGroup/itemSiteGroup_IL_merge_into_sf.sql",
+                        "/dbfs/FileStore/tables/sql/je/itemSiteGroup/itemSiteGroup_pivot_view_update.sql"
+                    ]
+                }
+            ]
+        }
+        
+    ]
+}

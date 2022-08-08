@@ -1,0 +1,260 @@
+{
+    "transformations": [
+        {
+			"transformType": "dropDuplicates",
+			"columnMapping": [
+                {
+                    "sortProperties": {
+                        "LastUpdatedDateTime": "desc"
+                    },
+                    "groupKeys": [
+				        "Concept","ItemCode","SiteCode"
+				    ]
+                }
+            ]
+		},
+		{
+            "transformType": "mapping",
+            "columnMapping": [
+                {
+                    "sourceCol": "INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY_KEY",
+                    "targetCol": "INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY_KEY"
+                },
+                {
+                    "sourceCol": "LOCATION_KEY",
+                    "targetCol": "LOCATION_KEY"
+                },
+                {
+                    "sourceCol": "SiteCode",
+                    "targetCol": "LOCATION_ID"
+                },
+                {
+                    "sourceCol": "LOCATION_DESC",
+                    "targetCol": "LOCATION_DESC"
+                },
+                {
+                    "sourceCol": "LOCATION_TYPE_CD",
+                    "targetCol": "LOCATION_TYPE_CD"
+                },
+                {
+                    "sourceCol": "Concept",
+                    "targetCol": "CONCEPT_CD"
+                },
+                {
+                    "sourceCol": "ITEM_KEY",
+                    "targetCol": "ITEM_KEY"
+                },
+                {
+                    "sourceCol": "ItemCode",
+                    "targetCol": "ITEM_ID"
+                },
+                {
+                    "sourceCol": "MARKET_CD",
+                    "targetCol": "MARKET_CD"
+                },
+                {
+                    "sourceCol": "INV_FCST_ITEM_PLACEHOLDER_KEY",
+                    "targetCol": "INV_FCST_ITEM_PLACEHOLDER_KEY"
+                },
+                {
+                    "sourceCol": "INV_FCST_ITEM_PLACEHOLDER_ID",
+                    "targetCol": "INV_FCST_ITEM_PLACEHOLDER_ID"
+                },
+                {
+                    "sourceCol": "VIRTUAL_WAREHOUSE_KEY",
+                    "targetCol": "VIRTUAL_WAREHOUSE_KEY"
+                },
+                {
+                    "sourceCol": "VIRTUAL_WAREHOUSE_ID",
+                    "targetCol": "VIRTUAL_WAREHOUSE_ID"
+                },
+                {
+                    "sourceCol": "VIRTUAL_WAREHOUSE_NM",
+                    "targetCol": "VIRTUAL_WAREHOUSE_NM"
+                },
+                {
+                    "sourceCol": "SHIP_NODE_KEY",
+                    "targetCol": "SHIP_NODE_KEY"
+                },
+                {
+                    "sourceCol": "SHIP_NODE_ID",
+                    "targetCol": "SHIP_NODE_ID"
+                },
+                {
+                    "sourceCol": "LastUpdatedDateTime",
+                    "targetCol": "FIRST_EFFECTIVE_TS"
+                },               
+                {
+                    "default": "MAX_EFFECTIVE_TS",
+                    "targetCol": "LAST_EFFECTIVE_TS"
+                },
+                {
+                    "sourceCol": "PARENT_ITEM_PLACEHOLDER_CD",
+                    "targetCol": "PARENT_ITEM_PLACEHOLDER_CD"
+                },
+                {
+                    "sourceCol": "ITEM_PLACEHOLDER_DESC",
+                    "targetCol": "ITEM_PLACEHOLDER_DESC"
+                },
+                {
+                    "sourceCol": "ITEM_PLACEHOLDER_DEPT_DESC",
+                    "targetCol": "ITEM_PLACEHOLDER_DEPT_DESC"
+                },
+                {
+                    "sourceCol": "AllocationStrategyCode",
+                    "targetCol": "ALLOCATION_STRATEGY_CD"
+                },
+                {
+                    "sourceCol": "AllocationStrategyType",
+                    "targetCol": "ALLOCATION_STRATEGY_TYPE_CD"
+                },
+                {
+                    "sourceCol": "MaterialExceptions",
+                    "targetCol": "MATERIAL_EXCEPTIONS_DESC"
+                },
+                {
+                    "sourceCol": "PresentationPriority",
+                    "targetCol": "PRESENTATION_PRIORITY_DESC"
+                },
+                {
+                    "sourceCol": "DemandType",
+                    "targetCol": "DEMAND_TYPE_CD"
+                },
+                {
+                    "sourceCol": "SizeCurveAssignment",
+                    "targetCol": "CURVE_ASSIGNMENT_SIZE_DESC"
+                },
+                {
+                    "sourceCol": "ProductModel",
+                    "targetCol": "PRODUCT_MODEL_DESC"
+                },
+                {
+                    "sourceCol": "ReTrendMethod",
+                    "targetCol": "RETREND_METHOD_CD"
+                },
+                {
+                    "sourceCol": "UseReTrend",
+                    "targetCol": "USE_RETREND_FLAG"
+                },
+                {
+                    "sourceCol": "ClusterSets",
+                    "targetCol": "LOCATION_CLUSTER_SET"
+                },
+                {
+                    "sourceCol": "Cluster",
+                    "targetCol": "LOCATION_CLUSTER"
+                },
+                {
+                    "sourceCol": "LocationStrategy",
+                    "targetCol": "LOCATION_STRATEGY_DESC"
+                },
+                {
+                    "sourceCol": "PresMax",
+                    "targetCol": "PRESENTATION_MAX_NBR"
+                },
+                {
+                    "sourceCol": "MinStockPerSize",
+                    "targetCol": "MIN_STOCK_PER_SIZE_NBR"
+                },
+                {
+                    "sourceCol": "SiteEligible",
+                    "targetCol": "SITE_ELIGIBLE_FLAG"
+                },
+                {
+                    "sourceCol": "InventorySourceSelection",
+                    "targetCol": "INVENTORY_SOURCE_SELECTION_DESC"
+                },
+                {
+                    "sourceCol": "PrioritySequence",
+                    "targetCol": "PRIORITY_SEQUENCE_DESC"
+                },
+                {
+                    "sourceCol": "SellthroughTargetPerc",
+                    "targetCol": "SELL_THROUGH_TARGET_PCT"
+                },
+                {
+                    "sourceCol": "SalesCurveSelection",
+                    "targetCol": "SALES_CURVE_SELECTION_DESC"
+                },
+                {
+                    "sourceCol": "HoldbackPerc",
+                    "targetCol": "HOLD_BACK_PCT"
+                },
+                {
+                    "sourceCol": "Status",
+                    "targetCol": "ALLOCATION_STATUS_DESC"
+                },
+                {
+                    "sourceCol": "SettingSource",
+                    "targetCol": "SETTING_SOURCE_DESC"
+                },
+                {
+                    "sourceCol": "AllowReservation",
+                    "targetCol": "ALLOW_RESERVATION_FLAG"
+                },
+                {
+                    "sourceCol": "SalesPlanBasis",
+                    "targetCol": "SALES_PLAN_BASIS_DESC"
+                },
+                {
+                    "sourceCol": "TemporalPlan",
+                    "targetCol": "TEMPORAL_PLAN_DESC"
+                },
+                {
+                    "sourceCol": "IsGroupStrategy",
+                    "targetCol": "GROUP_STRATEGY_FLAG"
+                },
+                {
+                    "sourceCol": "StoreExpectedQuantity",
+                    "targetCol": "STORE_EXPECTED_QTY"
+                },
+                {
+                    "dateTimeAttributes": {
+                        "currDateTime": "current_timestamp",
+                        "targetColdateTimeFormats": "yyyy-MM-dd HH:mm:ss.000"
+                    },
+                    "targetCol": "INSERT_TS"
+                },
+                {
+                    "dateTimeAttributes": {
+                        "currDateTime": "current_timestamp",
+                        "targetColdateTimeFormats": "yyyy-MM-dd HH:mm:ss.000"
+                    },
+                    "targetCol": "UPDATE_TS"
+                }
+            ]
+        },
+        {
+            "transformType": "executeQuery",
+            "columnMapping": [
+                {
+                    "queryPath": "/dbfs/FileStore/tables/sql/je/AllocationStrategyItemSite/AllocationStrategyItemSite_lookup.sql",
+                    "tableName": "STG_TEMP_LOOKUP_INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY"
+                }
+            ]
+        },
+        
+        {
+			"transformType": "dropDuplicates",
+			"columnMapping": [
+                {
+        			"sortProperties": {
+        				"LAST_EFFECTIVE_TS": "desc"
+        			},
+                    "groupKeys": [
+    				    "CONCEPT_CD","ITEM_ID","LOCATION_ID"
+    				]
+    			}
+            ]
+		},
+		{
+            "transformType": "executeQuery",
+            "columnMapping": [
+                {
+                    "queryPath": "/dbfs/FileStore/tables/sql/je/AllocationStrategyItemSite/AllocationStrategyItemSite_surrogate_key_gen.sql",
+                    "tableName": "STG_TEMP_INV_FCST_LOCATION_ITEM_ALLOC_STRATEGY"
+                }
+            ]
+        }
+    ]
+}
