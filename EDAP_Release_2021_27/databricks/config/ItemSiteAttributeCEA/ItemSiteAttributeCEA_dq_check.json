@@ -1,0 +1,53 @@
+{
+   "qcId": "INV_FCST_ITEM_SITE_ATTR_CEA",
+   "description": "INV_FCST_ITEM_SITE_ATTR_CEA QC check",
+   "appQueries": [
+      {
+         "queryId": 1,
+         "description": "L2-INV_FCST_ITEM_SITE_ATTR_CEA Null Check",
+         "source": {
+            "query": "select cast(count(*) as double) from L2_ANALYTICS_TABLES.INV_FCST_ITEM_SITE_ATTR_CEA where CONCEPT_CD IS NULL and ITEM_ID IS NULL and LOCATION_ID IS NULL and ITEM_SITE_ATTR_NM IS NULL"
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      },
+      {
+         "queryId": 2,
+         "description": "L2-INV_FCST_ITEM_SITE_ATTR_CEA Duplicate Key Check",
+         "source": {
+            "query": "select cast(count(*) as double) from (SELECT INV_FCST_ITEM_SITE_ATTR_CEA_KEY FROM L2_ANALYTICS_TABLES.INV_FCST_ITEM_SITE_ATTR_CEA WHERE LAST_EFFECTIVE_TS = '9999-12-31T23:59:59.000+0000' GROUP BY INV_FCST_ITEM_SITE_ATTR_CEA_KEY HAVING COUNT(*) > 1)"
+         },
+         "target": {
+            "query": "select CAST(0 AS DOUBLE)"
+         }
+      },
+      {
+         "queryId": 3,
+         "description": "INV_FCST_ITEM_SITE_ATTR_CEA Snowflake-Delta Count Check",
+         "source": {
+            "system": "snowflake",
+            "query": "select cast(count(*) as double) from  PROD_EDAP_ANALYTICS_DB.PROD_EDAP_ANALYTICS_TABLES.INV_FCST_ITEM_SITE_ATTR_CEA",
+            "keyVaultAuth": {
+               "keyVaultParams": {
+                  "clientId": "${spark.wsgc.clientId}",
+                  "clientKey": "${spark.wsgc.clientkey}",
+                  "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}",
+                  "usernameKey": "${spark.wsgc.usernamekey}",
+                  "passwordKey": "${spark.wsgc.passwordkey}"
+               }
+            },
+            "snowflake": {
+               "sfURL": "williamssonoma.east-us-2.azure.snowflakecomputing.com",
+               "sfAccount": "williamssonoma",
+               "sfWarehouse": "PROD_EDAP_ANALYTICS_WH",
+               "sfDatabase": "PROD_EDAP_ANALYTICS_DB",
+               "sfSchema": "PROD_EDAP_ANALYTICS_TABLES"
+            }
+         },
+         "target": {
+            "query": "select cast(count(*) as double) from L2_ANALYTICS_TABLES.INV_FCST_ITEM_SITE_ATTR_CEA"
+         }
+      }
+   ]
+}

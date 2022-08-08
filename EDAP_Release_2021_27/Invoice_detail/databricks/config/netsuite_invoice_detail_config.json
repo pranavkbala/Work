@@ -1,0 +1,108 @@
+{
+    "parallelism": 6,
+    "onJobFailure": "Fail",
+    "onEmptyDF": "Fail",
+    "ignoreInvalidRows": true,
+    "cleanColumnNames": true,
+    "jobs": [
+        {
+        "name": "GenericPassThroughBatchJob.NETSUITE_INVOICE_DETAIL_L1",
+        "description": "Extract invoice_detail data from Administrator.Transaction_lines table",
+        "ignoreInvalidRows": true,
+        "cleanColumnNames": true,
+        "jdbcInputs": [{
+            "dataFrameName": "NETSUITE_INVOICE_DETAIL_L1",
+            "driver": "com.netsuite.jdbc.openaccess.OpenAccessDriver",
+            "flavor": "oracle",
+            "url": "${spark.wsgc.jdbcUrl}",
+            "keyVaultAuth": {
+                "keyVaultParams": {
+                    "clientId": "${spark.wsgc.clientId}",
+                    "clientKey": "${spark.wsgc.clientkey}",
+                    "usernameKey": "${spark.wsgc.usernamekey}",
+                    "passwordKey": "${spark.wsgc.passwordkey}",
+                    "vaultBaseUrl": "${spark.wsgc.vaultbaseurl}"
+                }
+            },
+            "incrementalParams": {
+                "checkpointTablePath" : "dbfs:/mnt/data/governed/l1/audit/log/checkpoint_log/",
+                "extractId" : "NETSUITE_INVOICE_DETAIL",
+                "incrementalSql" : "( select trs_lines.TRANSACTION_LINE_ID,trs_lines.ITEM_ID,trs_lines.ITEM_COUNT,trs_lines.ITEM_UNIT_PRICE,trs_lines.Net_AMOUNT,trs_lines.DATE_LAST_MODIFIED_GMT,trs_lines.TRANSACTION_ID,trs_lines.SUBSIDIARY_ID,trs_lines.CLASS_ID,cls.NAME as CLASS_NAME,trs_lines.PACK_GROUP,trs_lines.DEPARTMENT_ID,trs_lines.SHIPDATE,trs_lines.FULFILLMENT_STATUS_ID,trs_lines.DISCOUNT_RATE,trs_lines.DATE_CLOSED,trs_lines.ELC__AGENT_COMMISSION,trs_lines.ELC__HTS,trs_lines.FIRST_COST,trs_lines.ELC__FREIGHT,trs_lines.ELC__MISC,trs_lines.QUANTITY_COMMITTED,trs_lines.LOCATION_ID,trs_lines.ESTIMATED_COST from Administrator.TRANSACTION_LINES trs_lines join Administrator.CLASSES cls on trs_lines.CLASS_ID = cls.CLASS_ID join Administrator.TRANSACTIONS trs on trs_lines.TRANSACTION_ID = trs.TRANSACTION_ID  where trs.TRANSACTION_TYPE in ('Invoice','Credit Memo','Cash Refund','Cash Sale','Customer Refund') and trs_lines.DATE_LAST_MODIFIED_GMT > TO_DATE('%%{CHECKPOINT_VALUE_1}','DD-MM-YYYY HH24:MI:SS') AND trs_lines.DATE_LAST_MODIFIED_GMT <= TO_DATE('%%{maxCheckPointValue1}','DD-MM-YYYY HH24:MI:SS'))a1 ",
+                "maxCheckPoint1" : "select TO_CHAR(max(DATE_LAST_MODIFIED_GMT),'DD-MM-YYYY HH24:MI:SS') from Administrator.TRANSACTION_LINES where DATE_LAST_MODIFIED_GMT >= TO_DATE('%%{CHECKPOINT_VALUE_1}','DD-MM-YYYY HH24:MI:SS')"
+            }
+         }
+            ],
+        "fileOutputs": [{
+            "dataFrameName": "NETSUITE_INVOICE_DETAIL_L1",
+            "format": "PARQUET",
+            "path": "dbfs:/mnt/data/governed/l1/global_netsuite/sales/table/inbound/invoice_detail/",
+            "saveMode": "Overwrite"
+        },
+        {
+            "dataFrameName": "NETSUITE_INVOICE_DETAIL_L1",
+            "format": "DELTA",
+            "path": "dbfs:/mnt/data/governed/l1/global_netsuite/sales/table/inbound_archive/invoice_detail/",
+            "saveMode": "Append"
+        }
+    ]
+    },
+    {
+        "name": "GenericPassThroughBatchJob.NETSUITE_INVOICE_DETAIL_L2",
+        "description": "Ingest NETSUITE TRANSCATIONS LINES INVOICE DETAIL DATA to INVOICE_DETAIL Table from L1 to L2 Delta",
+        "ignoreInvalidRows": true,
+        "cleanColumnNames": true,
+        "fileInputs": [{
+           "dataFrameName": "INVOICE_DETAIL_L2",
+           "format": "PARQUET",
+            "path": "dbfs:/mnt/data/governed/l1/global_netsuite/sales/table/inbound/invoice_detail/"
+        }],
+        "deltaOutputs": [{
+           "dataFrameName": "INVOICE_DETAIL_L2",
+           "format": "DELTA",
+           "dbName": "L2_STAGE",
+           "tableName": "NETSUITE_INVOICE_DETAIL_STG_TEMP",
+           "queryPaths": [
+              "/dbfs/FileStore/tables/sql/global_netsuite/sales/invoice_detail/netsuite_invoice_detail_transformations.sql"
+           ],
+           "saveMode": "Overwrite"
+        }]
+     },
+     {
+         "name":"GenericPassThroughBatchJob.NETSUITE_INVOICE_DETAIL_SF",
+         "description":"Load data into INVOICE DETAIL table for Snowflake",
+         "ignoreInvalidRows":true,
+         "cleanColumnNames":true,
+         "deltaInputs":[
+            {
+               "dataFrameName":"NETSUITE_INVOICE_DETAIL_DF",
+               "dbName":"L2_STAGE",
+               "tableName":"NETSUITE_INVOICE_DETAIL_STG"
+            }
+         ],
+         "snowflakeOutputs":[
+            {
+               "dataFrameName":"NETSUITE_INVOICE_DETAIL_DF",
+               "sfURL":"williamssonoma.east-us-2.azure.snowflakecomputing.com",
+               "sfAccount":"williamssonoma",
+               "keyVaultAuth": {
+                  "keyVaultParams":{
+                     "clientId":"${spark.wsgc.clientId}",
+                     "clientKey":"${spark.wsgc.clientkey}",
+                     "vaultBaseUrl":"${spark.wsgc.vaultbaseurl}",
+                     "usernameKey":"${spark.wsgc.usernamekey}",
+                     "passwordKey":"${spark.wsgc.passwordkey}"
+                  }
+               },
+               "sfWarehouse":"PROD_EDAP_ANALYTICS_WH",
+               "sfDatabase":"PROD_EDAP_STAGE_DB",
+               "sfSchema":"PROD_EDAP_STAGE_TABLES",
+               "tableName":"NETSUITE_INVOICE_DETAIL_STG",
+               "queryPaths":[
+                  "/dbfs/FileStore/tables/sql/global_netsuite/sales/invoice_detail/netsuite_invoice_detail_merge_into_sf.sql"
+               ],
+               "saveMode":"Overwrite"
+            }
+         ]
+     }         
+  ]
+}

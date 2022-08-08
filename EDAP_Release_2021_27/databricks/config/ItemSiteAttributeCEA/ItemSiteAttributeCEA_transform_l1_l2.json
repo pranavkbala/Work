@@ -1,0 +1,178 @@
+{
+    "transformations": [
+        {
+            "transformType": "dropDuplicates",
+            "columnMapping": [
+                {
+                    "sortProperties": {
+                        "LastUpdatedDateTime": "desc"
+                    },
+                    "groupKeys": [
+                        "Concept",
+                        "ItemCode",
+                        "SiteCode",
+                        "AttributeName"
+                    ]
+                }
+            ]
+        },
+        {
+            "transformType": "mapping",
+            "columnMapping": [
+                {
+                    "sourceCol": "INV_FCST_ITEM_SITE_ATTR_CEA_KEY",
+                    "targetCol": "INV_FCST_ITEM_SITE_ATTR_CEA_KEY"
+                },
+                {
+                    "sourceCol": "LOCATION_KEY",
+                    "targetCol": "LOCATION_KEY"
+                },
+                {
+                    "sourceCol": "SiteCode",
+                    "targetCol": "LOCATION_ID"
+                },
+                {
+                    "sourceCol": "LOCATION_TYPE_CD",
+                    "targetCol": "LOCATION_TYPE_CD"
+                },
+                {
+                    "sourceCol": "Concept",
+                    "targetCol": "CONCEPT_CD"
+                },
+                {
+                    "sourceCol": "ITEM_KEY",
+                    "targetCol": "ITEM_KEY"
+                },
+                {
+                    "sourceCol": "ItemCode",
+                    "targetCol": "ITEM_ID"
+                },
+                {
+                    "sourceCol": "MARKET_CD",
+                    "targetCol": "MARKET_CD"
+                },
+                {
+                    "sourceCol": "VIRTUAL_WAREHOUSE_KEY",
+                    "targetCol": "VIRTUAL_WAREHOUSE_KEY"
+                },
+                {
+                    "sourceCol": "VIRTUAL_WAREHOUSE_ID",
+                    "targetCol": "VIRTUAL_WAREHOUSE_ID"
+                },
+                {
+                    "sourceCol": "VIRTUAL_WAREHOUSE_NM",
+                    "targetCol": "VIRTUAL_WAREHOUSE_NM"
+                },
+                {
+                    "sourceCol": "SHIP_NODE_KEY",
+                    "targetCol": "SHIP_NODE_KEY"
+                },
+                {
+                    "sourceCol": "SHIP_NODE_ID",
+                    "targetCol": "SHIP_NODE_ID"
+                },
+                {
+                    "sourceCol": "LastUpdatedDateTime",
+                    "targetCol": "FIRST_EFFECTIVE_TS"
+                },
+                {
+                    "default": "MAX_EFFECTIVE_TS",
+                    "targetCol": "LAST_EFFECTIVE_TS"
+                },
+                {
+                    "sourceCol": "AttributeName",
+                    "targetCol": "ITEM_SITE_ATTR_NM"
+                },
+                {
+                    "sourceCol": "AttributeValue",
+                    "targetCol": "ITEM_SITE_ATTR_VAL"
+                },
+                {
+                    "dateTimeAttributes": {
+                        "currDateTime": "current_timestamp",
+                        "targetColdateTimeFormats": "yyyy-MM-dd HH:mm:ss.000"
+                    },
+                    "targetCol": "INSERT_TS"
+                },
+                {
+                    "dateTimeAttributes": {
+                        "currDateTime": "current_timestamp",
+                        "targetColdateTimeFormats": "yyyy-MM-dd HH:mm:ss.000"
+                    },
+                    "targetCol": "UPDATE_TS"
+                }
+            ]
+        },
+        {
+            "transformType": "join",
+            "joinAtrributes": [
+                {
+                    "dataFrameName": "L2_INV_FCST_ITEM_SITE_ATTR_CEA_IL",
+                    "joinConditions": "L2_INV_FCST_ITEM_SITE_ATTR_CEA_IL.ITEM_ID = trim(L1_INV_FCST_ITEM_SITE_ATTR_CEA_STG.ITEM_ID)   AND   L2_INV_FCST_ITEM_SITE_ATTR_CEA_IL.LOCATION_ID = trim(L1_INV_FCST_ITEM_SITE_ATTR_CEA_STG.LOCATION_ID)  AND   L2_INV_FCST_ITEM_SITE_ATTR_CEA_IL.ITEM_SITE_ATTR_NM = trim(L1_INV_FCST_ITEM_SITE_ATTR_CEA_STG.ITEM_SITE_ATTR_NM)   AND   L2_INV_FCST_ITEM_SITE_ATTR_CEA_IL.CONCEPT_CD = trim(L1_INV_FCST_ITEM_SITE_ATTR_CEA_STG.CONCEPT_CD)   AND   L2_INV_FCST_ITEM_SITE_ATTR_CEA_IL.LAST_EFFECTIVE_TS = '9999-12-31T23:59:59.000+0000'",
+                    "joinType": "leftouter"
+                },
+                {
+                    "dataFrameName": "L2_LOCATION",
+                    "joinConditions": "LPAD(L2_LOCATION.LOCATION_ID,4,0) = LPAD(trim(L1_INV_FCST_ITEM_SITE_ATTR_CEA_STG.LOCATION_ID),4,0) AND L2_LOCATION.LAST_EFFECTIVE_TS = '9999-12-31T23:59:59.000+0000'",
+                    "joinType": "leftouter"
+                },
+                {
+                    "dataFrameName": "L2_ITEM",
+                    "joinConditions": "trim(L2_ITEM.ITEM_ID) = trim(L1_INV_FCST_ITEM_SITE_ATTR_CEA_STG.ITEM_ID) AND L2_LOCATION.COUNTRY_CD=SUBSTR(L2_ITEM.MARKET_CD,1,2) AND L2_ITEM.LAST_EFFECTIVE_TS = '9999-12-31T23:59:59.000+0000'",
+                    "joinType": "leftouter"
+                },
+                {
+                    "dataFrameName": "L2_VIRTUAL_WH",
+                    "joinConditions": "L2_VIRTUAL_WH.VIRTUAL_WAREHOUSE_ID = trim(L1_INV_FCST_ITEM_SITE_ATTR_CEA_STG.LOCATION_ID) AND L2_VIRTUAL_WH.LAST_EFFECTIVE_TS = '9999-12-31T23:59:59.000+0000'",
+                    "joinType": "leftouter"
+                }
+            ],
+            "selectExprs": [
+                "bigint(COALESCE(L2_INV_FCST_ITEM_SITE_ATTR_CEA_IL.INV_FCST_ITEM_SITE_ATTR_CEA_KEY,-1)) AS INV_FCST_ITEM_SITE_ATTR_CEA_KEY",
+                "COALESCE(CAST(L2_LOCATION.LOCATION_KEY as BIGINT),-1) AS LOCATION_KEY",
+                "TRIM(CAST(L1_INV_FCST_ITEM_SITE_ATTR_CEA_STG.LOCATION_ID AS STRING)) AS LOCATION_ID",
+                "CAST(L2_LOCATION.LOCATION_TYPE_CD as STRING) AS LOCATION_TYPE_CD",
+                "COALESCE(TRIM(L1_INV_FCST_ITEM_SITE_ATTR_CEA_STG.CONCEPT_CD), '-1') AS CONCEPT_CD",
+                "COALESCE(CAST(L2_ITEM.ITEM_KEY as BIGINT),-1) AS ITEM_KEY",
+                "TRIM(CAST(L1_INV_FCST_ITEM_SITE_ATTR_CEA_STG.ITEM_ID AS STRING)) AS ITEM_ID",
+                "TRIM(L2_ITEM.MARKET_CD) AS MARKET_CD",
+                "COALESCE(CAST(L2_VIRTUAL_WH.VIRTUAL_WAREHOUSE_KEY as BIGINT),-1) AS VIRTUAL_WAREHOUSE_KEY",
+                "TRIM(CAST(L2_VIRTUAL_WH.VIRTUAL_WAREHOUSE_ID AS STRING)) as VIRTUAL_WAREHOUSE_ID",
+                "CAST(L2_VIRTUAL_WH.WAREHOUSE_NM as STRING) AS VIRTUAL_WAREHOUSE_NM",
+                "COALESCE(CAST(L2_VIRTUAL_WH.SHIP_NODE_KEY as BIGINT),-1) AS SHIP_NODE_KEY",
+                "TRIM(CAST(L2_VIRTUAL_WH.SHIP_NODE_ID AS STRING)) as SHIP_NODE_ID",
+                "TIMESTAMP(FROM_UNIXTIME(UNIX_TIMESTAMP(cast(L1_INV_FCST_ITEM_SITE_ATTR_CEA_STG.FIRST_EFFECTIVE_TS as STRING),'yyyyMMddHHmmss'))) AS FIRST_EFFECTIVE_TS",
+                "TIMESTAMP(L1_INV_FCST_ITEM_SITE_ATTR_CEA_STG.LAST_EFFECTIVE_TS) AS LAST_EFFECTIVE_TS",
+                "TRIM(STRING(L1_INV_FCST_ITEM_SITE_ATTR_CEA_STG.ITEM_SITE_ATTR_NM)) AS ITEM_SITE_ATTR_NM",
+                "TRIM(STRING(L1_INV_FCST_ITEM_SITE_ATTR_CEA_STG.ITEM_SITE_ATTR_VAL)) AS ITEM_SITE_ATTR_VAL",
+                "TIMESTAMP(L1_INV_FCST_ITEM_SITE_ATTR_CEA_STG.INSERT_TS) AS INSERT_TS",
+                "TIMESTAMP(L1_INV_FCST_ITEM_SITE_ATTR_CEA_STG.UPDATE_TS) AS UPDATE_TS"
+            ]
+        },
+        {
+            "transformType": "dropDuplicates",
+            "columnMapping": [
+                {
+                    "sortProperties": {
+                        "LAST_EFFECTIVE_TS": "desc"
+                    },
+                    "groupKeys": [
+                        "CONCEPT_CD",
+                        "ITEM_ID",
+                        "LOCATION_ID",
+                        "ITEM_SITE_ATTR_NM"
+                    ]
+                }
+            ]
+        },
+        {
+            "transformType": "executeQuery",
+            "columnMapping": [
+                {
+                    "queryPath": "/dbfs/FileStore/tables/sql/je/ItemSiteAttributeCEA/ItemSiteAttributeCEA_surrogate_key_gen.sql",
+                    "tableName": "STG_TEMP_INV_FCST_ITEM_SITE_ATTR_CEA"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,82 @@
+{
+    "parallelism": 6,
+    "onJobFailure": "Fail",
+    "onEmptyDF": "Fail",
+    "ignoreInvalidRows": true,
+    "cleanColumnNames": true,
+    "jobs": [
+    {
+        "name": "GenericPassThroughBatchJob.NETSUITE_INVOICE_DETAIL_HIST_L2",
+        "description": "Ingest NETSUITE TRANSCATIONS LINES INVOICE DETAIL DATA to INVOICE_DETAIL Table from L1 to L2 Delta",
+        "ignoreInvalidRows": true,
+        "cleanColumnNames": true,
+        "fileInputs": [
+                {
+                    "dataFrameName": "NETSUITE_TRANSACTIONS_HIST_L1",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/global_netsuite/transactions/inbound/historical_data_eda_2127"
+                },
+                {
+
+                    "dataFrameName": "NETSUITE_TRANSACTION_LINES_HIST_L1",
+                    "format": "PARQUET",
+                    "path": "dbfs:/mnt/data/governed/l1/global_netsuite/transaction_lines/inbound/historical_data_eda_2127"
+                }
+            ],
+            "transformDataInputs": [
+             {
+                    "dataFrameName": "NETSUITE_TRANSACTION_LINES_HIST_L1",
+                    "nestedStructure": "true",
+                    "transformationsPath": "/dbfs/FileStore/tables/config/global_netsuite/sales/invoice_detail/netsuite_invoice_detail_hist_config.json"
+             }
+            ],
+            "deltaOutputs": [{
+           "dataFrameName": "NETSUITE_TRANSACTION_LINES_HIST_L1",
+           "format": "DELTA",
+           "dbName": "L2_STAGE",
+           "tableName": "NETSUITE_INVOICE_DETAIL_HIST_STG_TEMP",
+           "queryPaths": [
+              "/dbfs/FileStore/tables/sql/global_netsuite/sales/invoice_detail/netsuite_invoice_detail_hist_transformations.sql"
+           ],
+           "saveMode": "Overwrite"
+        }]
+     },
+     {
+         "name":"GenericPassThroughBatchJob.NETSUITE_INVOICE_DETAIL_HIST_SF",
+         "description":"Load data into INVOICE DETAIL table for Snowflake",
+         "ignoreInvalidRows":true,
+         "cleanColumnNames":true,
+         "deltaInputs":[
+            {
+               "dataFrameName":"NETSUITE_INVOICE_DETAIL_HIST_SF",
+               "dbName":"L2_STAGE",
+               "tableName":"NETSUITE_INVOICE_DETAIL_STG"
+            }
+         ],
+         "snowflakeOutputs":[
+            {
+               "dataFrameName":"NETSUITE_INVOICE_DETAIL_HIST_SF",
+               "sfURL":"williamssonoma.east-us-2.azure.snowflakecomputing.com",
+               "sfAccount":"williamssonoma",
+               "keyVaultAuth": {
+                  "keyVaultParams":{
+                     "clientId":"${spark.wsgc.clientId}",
+                     "clientKey":"${spark.wsgc.clientkey}",
+                     "vaultBaseUrl":"${spark.wsgc.vaultbaseurl}",
+                     "usernameKey":"${spark.wsgc.usernamekey}",
+                     "passwordKey":"${spark.wsgc.passwordkey}"
+                  }
+               },
+               "sfWarehouse":"PROD_EDAP_ANALYTICS_WH",
+               "sfDatabase":"PROD_EDAP_STAGE_DB",
+               "sfSchema":"PROD_EDAP_STAGE_TABLES",
+               "tableName":"NETSUITE_INVOICE_DETAIL_STG",
+               "queryPaths":[
+                  "/dbfs/FileStore/tables/sql/global_netsuite/sales/invoice_detail/netsuite_invoice_detail_hist_insert_into_sf.sql"
+               ],
+               "saveMode":"Overwrite"
+            }
+         ]
+     }     
+  ]
+}
